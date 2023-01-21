@@ -7,26 +7,19 @@
 
 
 # 导入Python标准库
-from typing import List
+import copy
+from typing import List, Tuple
 
 # 导入自定义库
 from .engines import MAP
-from .tools import Memorizer
+from .tools import StorageServer
 
 
 class BookConfig(object):
 	"""书籍信息配置"""
-	class DownType(object):
-		"""下载方式常量"""
-		# 下载为多个Txt文件
-		TXT_MANY_FILE = Memorizer.StorageMethod.TXT_MANY_FILE
-		# 下载为单个Txt文件
-		TXT_ONE_FILE = Memorizer.StorageMethod.TXT_ONE_FILE
-		
-		# 所有受支持的下载方式
-		ALL_TYPE = [TXT_MANY_FILE, TXT_ONE_FILE]
-		
-	def __init__(self, book_url: str, down_type: str, flag: bool = True, book_name: str = "") -> None:
+	DOWNLOAD_TYPE = StorageServer.StorageMethod
+
+	def __init__(self, book_url: str, down_type: Tuple[str, int], flag: bool = True, book_name: str = "") -> None:
 		"""初始化该类
 		
 		:param book_url: 书籍的源URL
@@ -47,7 +40,7 @@ class BookConfig(object):
 		return f"{self.__book_url} - {self.__down_type} - {'下载' if self.__flag else '不下载'}"
 	
 	def __repr__(self):
-		return f"<BookConfig flag={self.__flag} down_type={self.__down_type} url={self.__book_url}>"
+		return f"<BookConfig flag={self.__flag} down_type={self.__down_type} name={self.__book_name} url={self.__book_url}>"
 	
 	@property
 	def book_url(self):
@@ -65,11 +58,34 @@ class BookConfig(object):
 		return self.__flag
 
 
+class Callback(object):
+	"""命令行内使用的回调函数集"""
+	@staticmethod
+	def book_info(name: str, author: str, state: str, desc: str, chapter_number: int):
+		print(f"以下是书籍信息:\n\t名称 - {name}\n\t作者 - {author}\n\t状态 - {state}\n\t章节数 - {chapter_number}\n\t描述 - {desc}")
+	
+	@staticmethod
+	def chapter_info(book_name: str, author: str, chapter_name: str, content: str, index: int):
+		print(f"{book_name} - {author}: {index}.{chapter_name} 长度：{len(content)}")
+	
+	@staticmethod
+	def book_finish(name: str, author: str):
+		print(f"{name} - {author}: 下载完毕!")
+
+
 class ManDown(object):
 	"""手动小说下载管理器"""
+	DOWNLOAD_TYPE = StorageServer.StorageMethod
+
 	def __init__(self):
 		# 书籍配置列表
 		self.__book_configs: List[BookConfig] = []
+		# 由于要更改回调函数，为不引起冲突，创建一个全拷贝
+		self.__map = copy.deepcopy(MAP)
+		# 设置回调函数
+		self.__map.book_info_callback = Callback.book_info
+		self.__map.chapter_info_callback = Callback.chapter_info
+		self.__map.finish_callback = Callback.book_finish
 	
 	def append(self, book_config: BookConfig) -> bool:
 		"""添加书籍配置
@@ -83,11 +99,11 @@ class ManDown(object):
 	def download(self):
 		"""下载书籍列表，flag为False的书籍不会被下载"""
 		for book_config in self.__book_configs:
-			if book_config.flag:
-				if book_config.down_type == BookConfig.DownType.ALL_TYPE:
-					data = MAP.download(book_config.book_url)
-					for i in BookConfig.DownType.ALL_TYPE:
-						Memorizer(data, i).save()
-				else:
-					Memorizer(MAP.download(book_config.book_url), book_config.down_type).save()
-		
+			if not book_config.flag:
+				continue
+			if book_config.down_type in self.DOWNLOAD_TYPE.ALL:
+				StorageServer(self.__map.download(book_config.book_url), book_config.down_type).save()
+				continue
+			data = self.__map.download(book_config.book_url)
+			for i in BookConfig.DownType.ALL_TYPE:
+				StorageServer(data, i).save()

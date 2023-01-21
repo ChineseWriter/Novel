@@ -26,8 +26,6 @@ from .object import Book
 
 class DiskTools(object):
 	"""所有和操作系统直接相关的工具"""
-	# 初始化日志记录器
-	__logger = Logger("Novel.DiskTools", "disk")
 	
 	@classmethod
 	def mkdir(cls, path: str) -> bool:
@@ -38,17 +36,21 @@ class DiskTools(object):
 		"""
 		# 检查目录是否存在
 		if os.path.exists(path):
-			cls.__logger.object.info(f"指定的路径({path})已存在，将不会重复创建该路径。")
 			return True
 		# 创建目录
 		try:
 			os.mkdir(path)
 		except OSError:
-			cls.__logger.object.warning(f"创建路径({path})失败:\n{traceback.format_exc()}")
 			return False
 		else:
-			cls.__logger.object.info(f"创建路径({path})成功。")
 			return True
+
+
+# 创建项目必要的路径
+DiskTools.mkdir("./data")
+DiskTools.mkdir("./data/log")
+DiskTools.mkdir("./data/book_info")
+DiskTools.mkdir("./data/book")
 
 
 class StorageServer(object):
@@ -206,9 +208,13 @@ class Network(object):
 		return True
 	
 	def __get(self):
+		# 下载错误次数记录
 		counter = 1
+		# 反复尝试下载
 		while True:
+			# 记录该次下载起始时间
 			start_time = time.time()
+			# 尝试下载数据，下载成功则跳出循环
 			try:
 				self.__response = requests.get(self.__url, headers=self.__header, timeout=21)
 			except (
@@ -220,44 +226,56 @@ class Network(object):
 				pass
 			else:
 				break
+			# 记录该次下载结束时间
 			finish_time = time.time()
+			# 检查该次下载耗时，若小于5秒，则排除网络不畅问题
 			if finish_time - start_time <= 5:
+				# 记录该次下载错误
 				counter += 1
+			# 若存在5次下载错误，则可能为反爬机制，停止下载30秒
 			if counter % 5 == 0:
 				time.sleep(30)
+			# 若10次停止下载未解决问题，则放弃该次下载
 			if counter == 50:
 				self.__logger.object.warning("暂缓下载未修复错误次数过多的问题，该次下载失败。")
 				break
 	
 	@property
 	def response(self):
+		"""获取requests.Response对象，即该次请求的原始相关数据"""
 		return self.__response
 	
 	@property
 	def bs(self):
+		"""获取请求的网页对象"""
 		return BeautifulSoup(self.__response.text, "lxml")
 	
 	def get_next_url(self, href: str):
+		"""通过传入的url获得下一页的url
+        
+        :param href: url
+        :return: 下一页的url
+        """
+		# 检查传入的参数是否为str类型
 		if not isinstance(href, str):
 			return self.__url
+		# 检查传入的参数是否为空
 		if not href:
+			# 为空则返回该网站的主网址
 			main_url = urlparse(self.__url)
 			return f"{main_url.scheme}://{main_url.netloc}/"
+		# 检查该网址是否包含JavaScript代码
 		if "(" in href:
 			return self.__url
+		# 解析该请求中的网址
 		main_url = urlparse(self.__url)
+		# 解析传入的网址
 		next_url = urlparse(href)
+		# 如果开头是反斜杠，则可以认定该参数是一个网址且为绝对路径，直接拼接即可
 		if href[0] == "/":
-			if next_url.netloc:
-				if main_url.netloc != next_url.netloc:
-					return self.__url
-			return f"{main_url.scheme}://{main_url.netloc}{next_url.path}"
-		else:
 			return urljoin(self.__url, href)
-
-
-# 创建项目必要的路径
-DiskTools.mkdir("./data")
-DiskTools.mkdir("./data/log")
-DiskTools.mkdir("./data/book_info")
-DiskTools.mkdir("./data/book")
+		# 如果传入的网址的网站存在且与该次请求的网站不符
+		if next_url.netloc and (main_url.netloc != next_url.netloc):
+			return self.__url
+		# 如果都不是，则该网址为相对路径，直接拼接即可
+		return f"{main_url.scheme}://{main_url.netloc}{next_url.path}"

@@ -5,10 +5,9 @@
 # @Author    :Amundsen Severus Rubeus Bjaaland
 
 
-from .log import Logger
 from .object import Book, Chapter
-from .engine import MAP, WebConfig
-from .engine import ManDown, BookConfig
+from .manually_down import BookConfig, ManDown
+from .engines import MAP
 
 
 VERSION_HISTORY = [

@@ -101,8 +101,7 @@ class Book(object):
 			for i in cls.STATE_LIST:
 				if number == i[1]:
 					return i
-			else:
-				return cls.SERIALIZING
+			return cls.SERIALIZING
 	
 	def __init__(self, book_name: str, author: str, state: tuple, source: str, desc: str = ""):
 		"""初始化书本对象
@@ -129,6 +128,16 @@ class Book(object):
 		self.__logger = Logger(f"Novel.Object.Book.{book_name}", "book")
 		# 创建章节列表对象
 		self.__chapter_list: List[Chapter] = []
+	
+	@staticmethod
+	def from_book_data(book_data: "BookData"):
+		return Book(
+			book_name=book_data.name,
+			author=book_data.author,
+			state=book_data.state,
+			source=book_data.source,
+            desc=book_data.desc
+		)
 	
 	def __len__(self):
 		return len(self.__chapter_list)
