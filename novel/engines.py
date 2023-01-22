@@ -99,7 +99,7 @@ class Config3(WebConfig):
 				)["href"]
 			)
 			if flag != response.response.url:
-				bs_object = get_response(response.get_next_url(flag)).bs
+				bs_object = Network.get_response(response.get_next_url(flag)).bs
 			else:
 				break
 		return BookData(book_name, author_name, state, desc, response.response.url, chapter_list)
@@ -160,7 +160,8 @@ class Config5(WebConfig):
 		chapters = response.bs.find("dl", attrs={"class": "zjlist"}).find_all("a")
 		chapter_list = []
 		for one_chapter in chapters:
-			chapter_list.append((response.get_next_url(one_chapter["href"]), one_chapter.text))
+			href = one_chapter["href"]
+			chapter_list.append((response.get_next_url(href), one_chapter.text))
 		return BookData(book_name, author_name, state, desc, response.response.url, chapter_list)
 	
 	def get_chapter_text(self, response: Network, index: int) -> ChapterData:
@@ -276,7 +277,7 @@ class Config8(WebConfig):
 			content_buffer.append([i.text for i in present_bs_object.find("div", attrs={"id": "TextContent"}).find_all("p")])
 			flag_text = next_url_a_tag.text.strip(" ")
 			if flag_text != "下一章":
-				present_bs_object = get_response(response.get_next_url(next_url_a_tag.get("href"))).bs
+				present_bs_object = Network.get_response(response.get_next_url(next_url_a_tag.get("href"))).bs
 			else:
 				break
 		text_list = []

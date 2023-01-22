@@ -66,10 +66,10 @@ class WebUrlManager(object):
 		DESC   TEXT    NOT NULL
 	)"""
 	
-	def __init__(self, web_config: WebConfig, db_path: str = "./data/book_info.db"):
+	def __init__(self, web_config: WebConfig, db_object, lock: threading.Lock):
 		"""初始化网站URL管理器对象"""
 		# 创建或连接到网站对应的数据库
-		self.__db_file = sqlite3.connect(db_path, check_same_thread=False)
+		self.__db_file = db_object
 		# 保存网站设置
 		self.__web_config = web_config
 		# 创建表名，包括网址表和书籍表
@@ -79,16 +79,20 @@ class WebUrlManager(object):
 		# 创建日志记录器对象
 		self.__logger = Logger("Novel.Web.DBManager.WebUrlManager", "engine")
 		# 创建线程锁，防止数据库被多线程访问
-		self.__lock = threading.Lock()
+		self.__lock = lock
 		# 创建URL存储表格
 		self.__create_table()
 	
 	def __del__(self):
 		self.__db_file.close()
 	
+	@property
+	def config(self):
+		return self.__web_config
+	
 	def __create_table(self):
-		cursor = self.__db_file.cursor()
 		self.__lock.acquire()
+		cursor = self.__db_file.cursor()
 		try:
 			result = cursor.execute(
 				f"""SELECT * FROM sqlite_master WHERE type='table' AND name='{self.__url_table_name}'"""
@@ -102,18 +106,16 @@ class WebUrlManager(object):
 			if not result:
 				cursor.execute(self.CREATE_TABLE_SENTENCE_2.replace("BOOKS", self.__book_info_table_name))
 				self.__db_file.commit()
-			cursor.close()
 		except Exception:
 			self.__db_file.rollback()
-			cursor.close()
 			self.__logger.object.critical(f"初始化URL数据库失败:\n{traceback.format_exc()}")
-			raise  # TODO 定义需要的错误类型
 		finally:
+			cursor.close()
 			self.__lock.release()
 	
 	def append_urls(self, urls: List[str]):
-		cursor = self.__db_file.cursor()
 		self.__lock.acquire()
+		cursor = self.__db_file.cursor()
 		try:
 			for one_url in urls:
 				url_path = urlparse(one_url).path
@@ -133,7 +135,6 @@ class WebUrlManager(object):
 						(None, url_path, url_hash, download_flag, book_flag, chapter_flag)
 					)
 			self.__db_file.commit()
-			cursor.close()
 		except Exception:
 			self.__db_file.rollback()
 			self.__logger.object.warning(f"添加URL失败:\n{traceback.format_exc()}")
@@ -150,7 +151,6 @@ class WebUrlManager(object):
 				(None, book.name, book.author, book.state[1], book.source, book.desc)
 			)
 			self.__db_file.commit()
-			cursor.close()
 		except Exception:
 			self.__db_file.rollback()
 			self.__logger.object.warning(f"添加书籍失败:\n{traceback.format_exc()}")
@@ -159,8 +159,8 @@ class WebUrlManager(object):
 			self.__lock.release()
 	
 	def get_url(self):
-		cursor = self.__db_file.cursor()
 		self.__lock.acquire()
+		cursor = self.__db_file.cursor()
 		new_url = ""
 		try:
 			result = cursor.execute(
@@ -177,13 +177,12 @@ class WebUrlManager(object):
 		return new_url
 	
 	def get_books(self):
-		cursor = self.__db_file.cursor()
 		self.__lock.acquire()
+		cursor = self.__db_file.cursor()
 		book_list = []
 		try:
 			data_list = cursor.execute(f"""SELECT * FROM {self.__book_info_table_name}""").fetchall()
 			book_list = [Book(i[1], i[2], Book.BookState.transform(i[3]), i[4], i[5]) for i in data_list]
-			cursor.close()
 		except Exception:
 			self.__db_file.rollback()
 			self.__logger.object.warning(f"添加书籍失败:\n{traceback.format_exc()}")
@@ -193,8 +192,8 @@ class WebUrlManager(object):
 		return book_list
 	
 	def search_books(self, name: str = ""):
-		cursor = self.__db_file.cursor()
 		self.__lock.acquire()
+		cursor = self.__db_file.cursor()
 		book_list = []
 		try:
 			data_list = cursor.execute(
@@ -202,7 +201,6 @@ class WebUrlManager(object):
 				("%" + "%".join([i for i in name]) + "%",)
 			).fetchall()
 			book_list = [Book(i[1], i[2], Book.BookState.transform(i[3]), i[4], i[5]) for i in data_list]
-			cursor.close()
 		except Exception:
 			self.__db_file.rollback()
 			self.__logger.object.warning(f"添加书籍失败:\n{traceback.format_exc()}")
@@ -214,8 +212,8 @@ class WebUrlManager(object):
 	def sign_url(self, url: str, state: tuple):
 		if state not in self.UrlState.STATE_LIST:
 			return None
-		cursor = self.__db_file.cursor()
 		self.__lock.acquire()
+		cursor = self.__db_file.cursor()
 		try:
 			cursor.execute(f"""UPDATE {self.__url_table_name} SET STATE=? WHERE HASH=?""", (state[1], hash(urlparse(url).path)))
 			self.__db_file.commit()
@@ -228,8 +226,8 @@ class WebUrlManager(object):
 			self.__lock.release()
 	
 	def transform_url(self):
-		cursor = self.__db_file.cursor()
 		self.__lock.acquire()
+		cursor = self.__db_file.cursor()
 		try:
 			cursor.execute(f"""UPDATE {self.__url_table_name} SET STATE=1 WHERE STATE=2""")
 			self.__db_file.commit()
@@ -242,8 +240,8 @@ class WebUrlManager(object):
 			self.__lock.release()
 	
 	def count(self):
-		cursor = self.__db_file.cursor()
 		self.__lock.acquire()
+		cursor = self.__db_file.cursor()
 		all_number = 0
 		downloaded_number = 0
 		book_number = 0
@@ -251,7 +249,6 @@ class WebUrlManager(object):
 			all_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name}""").fetchall()[0][0]
 			downloaded_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name} WHERE STATE=6""").fetchall()[0][0]
 			book_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name} WHERE IS_BOOK_URL=1""").fetchall()[0][0]
-			cursor.close()
 		except Exception:
 			self.__db_file.rollback()
 			self.__logger.object.critical(f"获取URL数目数据失败:\n{traceback.format_exc()}")
@@ -263,14 +260,19 @@ class WebUrlManager(object):
 
 class UrlGetter(object):
 	def __init__(
-			self, map: WebMap,
+			self, map: WebMap, db_path: str = "./data/book_info.db",
 			db_state_callback: Callable[[WebConfig, int, int, int], None] =
 			lambda a, b, c, d: print(f"{a.name}: 已找到{b}个网址，已下载{c}个网址，找到书籍网址{d}个。"),
 			url_state_callback: Callable[[WebConfig, str, str], None] =
 			lambda a, b, c: print(f"{a.name}: {b} {c}!"),
 	):
+		# 连接到数据库
+		self.__db = sqlite3.connect(db_path, check_same_thread=False)
+		# 全局同步机制
+		self.__lock = threading.Lock()
 		# 将Map对象添加入属性
 		self.__map = map
+		self.__manager_list = [WebUrlManager(i.config, self.__db, self.__lock) for i in self.__map.web_list]
 		# 设置回调函数
 		self.__db_state_callback = db_state_callback
 		self.__url_state_callback = url_state_callback
@@ -280,9 +282,9 @@ class UrlGetter(object):
 		self.__finished_flag = False
 		self.__pause_flag = False
 		# 启动下载线程并加入线程容器
-		for i in self.__map.web_list:
+		for i in self.__manager_list:
 			# 启动线程
-			get_url_thread = threading.Thread(target=self.__get_urls, args=(i.config,))
+			get_url_thread = threading.Thread(target=self.__get_urls, args=(i,), name=f"Thread-{i.config.name}")
 			get_url_thread.start()
 			# 加入线程容器
 			self.__thread_list.append(get_url_thread)
@@ -303,9 +305,17 @@ class UrlGetter(object):
 			i.join()
 		del self
 	
-	def __get_urls(self, config: WebConfig):
+	def search(self, book_name: str):
+		book_buffer = []
+		for i in self.__manager_list:
+			book_list = i.search_books(book_name)
+			for ii in book_list:
+				book_buffer.append(ii)
+		return book_buffer
+	
+	def __get_urls(self, db_manager: WebUrlManager):
 		"""获取网站的所有URL"""
-		db_manager = WebUrlManager(config)
+		config = db_manager.config
 		# 向数据库添加网站的主网址
 		db_manager.append_urls([f"http://{config.main_url}/"])
 		# 反复进行URL获取动作
@@ -361,24 +371,30 @@ class UrlGetter(object):
 			urls = list(filter(lambda x: True if x else False, urls))
 			# 将获取的URL添加到数据库中
 			db_manager.append_urls(urls)
-			if config.book_url_pattern.match(urlparse(current_url).path):
-				flag = True
-				while flag:
-					try:
-						book_info = config.get_book_info(response)
-					except Exception:
-						if not config.is_protected(response):
-							db_manager.sign_url(current_url, db_manager.UrlState.ANALYZE_ERROR)
-							self.__url_state_callback(
-								copy.deepcopy(config), current_url, db_manager.UrlState.ANALYZE_ERROR[0]
-							)
-							flag = False
-					else:
-						db_manager.append_book(book_info)
-						# 将已访问过的URL进行标记
-						db_manager.sign_url(current_url, db_manager.UrlState.DOWNLOADED)
+			if not config.book_url_pattern.match(urlparse(current_url).path):
+				db_manager.sign_url(current_url, db_manager.UrlState.DOWNLOADED)
+				# self.__url_state_callback(
+				# 	copy.deepcopy(config), current_url, db_manager.UrlState.DOWNLOADED[0]
+				# )
+				self.__db_state_callback(copy.deepcopy(config), *db_manager.count())
+				continue
+			flag = True
+			while flag:
+				try:
+					book_info = config.get_book_info(response)
+				except Exception:
+					if not config.is_protected(response):
+						db_manager.sign_url(current_url, db_manager.UrlState.ANALYZE_ERROR)
 						self.__url_state_callback(
-							copy.deepcopy(config), current_url, db_manager.UrlState.DOWNLOADED[0]
+							copy.deepcopy(config), current_url, db_manager.UrlState.ANALYZE_ERROR[0]
 						)
-						self.__db_state_callback(copy.deepcopy(config), *db_manager.count())
 						flag = False
+				else:
+					db_manager.append_book(book_info)
+					# 将已访问过的URL进行标记
+					db_manager.sign_url(current_url, db_manager.UrlState.DOWNLOADED)
+					# self.__url_state_callback(
+					# 	copy.deepcopy(config), current_url, db_manager.UrlState.DOWNLOADED[0]
+					# )
+					self.__db_state_callback(copy.deepcopy(config), *db_manager.count())
+					flag = False

@@ -273,9 +273,9 @@ class Network(object):
 		next_url = urlparse(href)
 		# 如果开头是反斜杠，则可以认定该参数是一个网址且为绝对路径，直接拼接即可
 		if href[0] == "/":
-			return urljoin(self.__url, href)
+			return f"{main_url.scheme}://{main_url.netloc}{next_url.path}"
 		# 如果传入的网址的网站存在且与该次请求的网站不符
 		if next_url.netloc and (main_url.netloc != next_url.netloc):
 			return self.__url
 		# 如果都不是，则该网址为相对路径，直接拼接即可
-		return f"{main_url.scheme}://{main_url.netloc}{next_url.path}"
+		return urljoin(self.__url, href)

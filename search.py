@@ -5,10 +5,17 @@
 # @Author    :Amundsen Severus Rubeus Bjaaland
 
 
-from novel import WebUrlManager, ENGINE_LIST
+from novel import UrlGetter, WebMap, ENGINE_LIST
 
 
 if __name__ == "__main__":
-    manager = WebUrlManager(ENGINE_LIST[5])
-    book_list = manager.search_books("修")
+    map = WebMap(
+        lambda a, b, c, d, e: None,
+        lambda a, b, c, d, e: None,
+        lambda a, b: None
+    )
+    map.append(ENGINE_LIST)
+    manager = UrlGetter(map)
+    manager.pause()
+    book_list = manager.search("修")
     a = 0
