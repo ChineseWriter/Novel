@@ -209,7 +209,7 @@ class Config6(WebConfig):
 		text = "\t" + "\n\t".join(content_buffer)
 		return ChapterData(index, text)
 	
-	def is_protected(self, response: Network, text: str) -> bool:
+	def is_protected(self, response: Network) -> bool:
 		if response.response.status_code != 200:
 			return True
 
@@ -288,12 +288,12 @@ class Config8(WebConfig):
 
 
 # 初始化内建引擎列表
-MAP = WebMap(lambda a, b, c, d, e: None, lambda a, b, c, d, e: None, lambda a, b: None)
-MAP.append(Config1())
-MAP.append(Config2())
-MAP.append(Config3())
-MAP.append(Config4())
-MAP.append(Config5())
-MAP.append(Config6())
-MAP.append(Config7())
-MAP.append(Config8())
+ENGINE_LIST = [
+	Config1(), Config2(), Config3(), Config4(), Config5(), Config6(), Config7(), Config8(),
+]
+MAP = WebMap(
+	lambda a, b, c, d, e: None,
+	lambda a, b, c, d, e: None,
+	lambda a, b: None
+)
+MAP.append(ENGINE_LIST)

@@ -11,7 +11,8 @@ import copy
 from typing import List, Tuple
 
 # 导入自定义库
-from .engines import MAP
+from .config import WebMap
+from .engines import ENGINE_LIST
 from .tools import StorageServer
 
 
@@ -80,12 +81,13 @@ class ManDown(object):
 	def __init__(self):
 		# 书籍配置列表
 		self.__book_configs: List[BookConfig] = []
-		# 由于要更改回调函数，为不引起冲突，创建一个全拷贝
-		self.__map = copy.deepcopy(MAP)
-		# 设置回调函数
-		self.__map.book_info_callback = Callback.book_info
-		self.__map.chapter_info_callback = Callback.chapter_info
-		self.__map.finish_callback = Callback.book_finish
+		# 初始化一个新的Map对象
+		self.__map = WebMap(
+			Callback.book_info,
+			Callback.chapter_info,
+			Callback.book_finish
+		)
+		self.__map.append(ENGINE_LIST)  # engine可以被复用
 	
 	def append(self, book_config: BookConfig) -> bool:
 		"""添加书籍配置

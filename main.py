@@ -9,13 +9,14 @@ import tkinter
 import tkinter.messagebox
 
 from novel import VERSION
-from novel import UrlDownloadFrame
+from novel import DownloadFrame
 
 
 if __name__ == "__main__":
 	main_window = tkinter.Tk()
 	main_window.title(f"书籍下载器  版本：{VERSION}")
-	app = UrlDownloadFrame(main_window)
+	app = DownloadFrame(main_window)
+	app.pack()
 	
 	
 	def app_exit():

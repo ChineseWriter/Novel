@@ -10,15 +10,18 @@ import tkinter
 import threading
 import tkinter.ttk
 from typing import List
+from urllib.parse import urlparse
 
-from ..engine import MAP
-from ..tools import Memorizer
+from .config import WebMap
+from .engines import ENGINE_LIST
+from .tools import StorageServer
 
 
 class InfoFrame(tkinter.Frame):
-	def __init__(self, master=None):
-		super(InfoFrame, self).__init__(master)
-		MAP.chapter_info_callback = self.__chapter_info_callback
+	def __init__(self, map: WebMap):
+		super(InfoFrame, self).__init__()
+		self.__map = map
+		self.__map.chapter_info_callback = self.__chapter_info_callback
 		
 		self.__info_table = tkinter.ttk.Treeview(self, show='headings')
 		self.__info_table["columns"] = (
@@ -73,11 +76,12 @@ class InfoFrame(tkinter.Frame):
 
 
 class SettingsFrame(tkinter.Frame):
-	def __init__(self, master, info_table):
+	def __init__(self, info_table, map: WebMap, master = None):
 		super(SettingsFrame, self).__init__(master)
 		self.__master: InfoFrame = master
 		self.__info_table = info_table
-		MAP.book_info_callback = self.__book_info_callback
+		self.__map = map
+		self.__map.book_info_callback = self.__book_info_callback
 		
 		self.__url_input_frame = tkinter.Frame(self)
 		self.__url_marked_words = tkinter.Label(self.__url_input_frame, text="书籍网址：")
@@ -95,14 +99,14 @@ class SettingsFrame(tkinter.Frame):
 		self.__mode_flag = tkinter.IntVar()
 		self.__mode_flag.set(1)
 		self.__mode_button_list = []
-		for index, method_flag in enumerate(Memorizer.StorageMethod.ALL):
+		for index, method_flag in enumerate(StorageServer.StorageMethod.ALL):
 			radio_button = tkinter.ttk.Radiobutton(
 				self.__mode_frame, value=index + 1, text=method_flag[0], variable=self.__mode_flag
 			)
 			radio_button.pack(side=tkinter.LEFT)
 			self.__mode_button_list.append(radio_button)
 		radio_button = tkinter.ttk.Radiobutton(
-			self.__mode_frame, value=len(Memorizer.StorageMethod.ALL)+1, text="所有格式", variable=self.__mode_flag
+			self.__mode_frame, value=len(StorageServer.StorageMethod.ALL)+1, text="所有格式", variable=self.__mode_flag
 		)
 		radio_button.pack(side=tkinter.LEFT)
 		self.__mode_button_list.append(radio_button)
@@ -126,16 +130,18 @@ class SettingsFrame(tkinter.Frame):
 		return None
 	
 	def __download(self, book_url, path="./data/book"):
-		save_method = Memorizer.StorageMethod.ALL
-		for i in Memorizer.StorageMethod.ALL:
+		save_method = StorageServer.StorageMethod.ALL
+		for i in StorageServer.StorageMethod.ALL:
 			if self.__mode_flag.get() == i[1]:
 				save_method = i
 				break
-		web = MAP.get_web_by_url(book_url)
+		web = self.__map.get_web_by_url(book_url)
 		if web.config.name == "默认":
 			return None
+		if len(urlparse(book_url).netloc.split(".")) == 2:
+			book_url = book_url.replace("//", "//www.")
 		book = web.download_book(book_url)
-		Memorizer(book, save_method).save()
+		StorageServer(book, save_method).save()
 	
 	def __book_info_callback(self, name: str, author: str, state: str, desc: str, chapter_numbers: int):
 		for index in self.__info_table.get_children():
@@ -155,9 +161,11 @@ class DownloadFrame(tkinter.Frame):
 	def __init__(self, master=None):
 		super(DownloadFrame, self).__init__(master)
 		self.__thread_list: List[threading.Thread] = []
+		self.__map = WebMap(lambda a, b, c, d, e: None, lambda a, b, c, d, e: None, lambda a, b: None)
+		self.__map.append(ENGINE_LIST)
 		
-		self.__info_frame = InfoFrame(self)
-		self.__settings_frame = SettingsFrame(self, self.__info_frame.info_table)
+		self.__info_frame = InfoFrame(self.__map)
+		self.__settings_frame = SettingsFrame(self.__info_frame.info_table, self.__map, self)
 		
 		self.pack()
 	

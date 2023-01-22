@@ -136,7 +136,7 @@ class Book(object):
 			author=book_data.author,
 			state=book_data.state,
 			source=book_data.source,
-            desc=book_data.desc
+            desc=book_data.desc.replace("\n", "").replace("\r", "")
 		)
 	
 	def __len__(self):

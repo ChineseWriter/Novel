@@ -6,8 +6,11 @@
 
 
 from .object import Book, Chapter
+from .config import WebMap, WebConfig
+from .engines import ENGINE_LIST, MAP
 from .manually_down import BookConfig, ManDown
-from .engines import MAP
+from .gui import DownloadFrame
+from .cache import UrlGetter, WebUrlManager
 
 
 VERSION_HISTORY = [

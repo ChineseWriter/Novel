@@ -11,7 +11,7 @@ import re
 import copy
 import time
 import traceback
-from typing import Callable, Tuple, List
+from typing import Callable, Tuple, List, Generator
 from urllib.parse import urlparse
 
 # 导入自定义库
@@ -276,6 +276,11 @@ class WebMap(object):
 		return f"<WebMap web_number={len(self.__web_list)}>"
 	
 	@property
+	def web_list(self) -> Generator[Web, None, None]:
+		for i in self.__web_list:
+			yield i
+	
+	@property
 	def book_info_callback(self):
 		"""获取书籍信息回调函数，参数分别为书籍名，作者名，书籍状态，书籍描述，章节总数"""
 		return self.__book_info_callback
@@ -308,16 +313,17 @@ class WebMap(object):
 		for i in self.__web_list:
 			i.book_finish_callback = cn_func
 	
-	def append(self, web_config: WebConfig) -> bool:
-		"""添加一个新网站配置
+	def append(self, web_config_list: List[WebConfig]) -> bool:
+		"""添加新网站配置
 
-		:param web_config: 网站配置
+		:param web_config_list: 网站配置
 		"""
-		self.__web_list.append(Web(
-			copy.deepcopy(web_config),  # 防止网站配置文件被更改
-			self.__book_info_callback, self.__chapter_info_callback, self.__finish_callback
-		))
-		self.__logger.object.info(f"添加了一个网站({web_config.name})的配置。")
+		for one_web_config in web_config_list:
+			self.__web_list.append(Web(
+				copy.deepcopy(one_web_config),  # 防止网站配置文件被更改
+				self.__book_info_callback, self.__chapter_info_callback, self.__finish_callback
+			))
+			self.__logger.object.info(f"添加了一个网站({one_web_config.name})的配置。")
 		return True
 	
 	def get_web_by_url(self, one_url: str) -> Web:
