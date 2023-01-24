@@ -8,7 +8,6 @@
 import time
 import copy
 import sqlite3
-import hashlib
 import threading
 import traceback
 from typing import List, Callable
@@ -18,13 +17,6 @@ from .log import Logger
 from .tools import Network
 from .config import WebConfig, WebMap
 from .object import Book, BookData
-
-
-def hash(url):
-	md5_machine = hashlib.md5()
-	md5_machine.update(url.encode('utf-8'))
-	return md5_machine.hexdigest()
-
 
 
 class WebUrlManager(object):
@@ -52,7 +44,6 @@ class WebUrlManager(object):
 	CREATE_TABLE_SENTENCE_1 = """CREATE TABLE URLS(
 		ID             INTEGER PRIMARY KEY AUTOINCREMENT,
 		URL_PATH       TEXT    NOT NULL UNIQUE,
-		HASH           INTEGER NOT NULL UNIQUE,
 		STATE          INTEGER NOT NULL DEFAULT 1 CHECK(1 <= STATE <= 6),
 		IS_BOOK_URL    INTEGER NOT NULL DEFAULT 0 CHECK(IS_BOOK_URL=0 OR IS_BOOK_URL=1),
 		IS_CHAPTER_URL INTEGER NOT NULL DEFAULT 0 CHECK(IS_CHAPTER_URL=0 OR IS_CHAPTER_URL=1)
@@ -121,18 +112,17 @@ class WebUrlManager(object):
 				url_path = urlparse(one_url).path
 				if not url_path:
 					continue
-				url_hash = hash(url_path)
 				result = cursor.execute(
-					f"""SELECT * FROM {self.__url_table_name} WHERE HASH=?""",
-					(url_hash,)
+					f"""SELECT * FROM {self.__url_table_name} WHERE URL_PATH=?""",
+					(url_path,)
 				).fetchall()
 				if not result:
 					book_flag = 1 if self.__web_config.book_url_pattern.match(url_path) else 0
 					chapter_flag = 1 if self.__web_config.chapter_url_pattern.match(url_path) else 0
 					download_flag = 6 if chapter_flag else 1
 					cursor.execute(
-						f"""INSERT INTO {self.__url_table_name} VALUES (?,?,?,?,?,?)""",
-						(None, url_path, url_hash, download_flag, book_flag, chapter_flag)
+						f"""INSERT INTO {self.__url_table_name} VALUES (?,?,?,?,?)""",
+						(None, url_path, download_flag, book_flag, chapter_flag)
 					)
 			self.__db_file.commit()
 		except Exception:
@@ -215,7 +205,7 @@ class WebUrlManager(object):
 		self.__lock.acquire()
 		cursor = self.__db_file.cursor()
 		try:
-			cursor.execute(f"""UPDATE {self.__url_table_name} SET STATE=? WHERE HASH=?""", (state[1], hash(urlparse(url).path)))
+			cursor.execute(f"""UPDATE {self.__url_table_name} SET STATE=? WHERE URL_PATH=?""", (state[1], urlparse(url).path))
 			self.__db_file.commit()
 			cursor.close()
 		except Exception:
@@ -283,12 +273,14 @@ class UrlGetter(object):
 		self.__pause_flag = False
 		# 启动下载线程并加入线程容器
 		for i in self.__manager_list:
-			# 启动线程
-			get_url_thread = threading.Thread(target=self.__get_urls, args=(i,), name=f"Thread-{i.config.name}")
-			get_url_thread.start()
 			# 加入线程容器
+			get_url_thread = threading.Thread(target=self.__get_urls, args=(i,), name=f"Thread-{i.config.name}")
 			self.__thread_list.append(get_url_thread)
 	
+	def start(self):
+		for get_url_thread in self.__thread_list:
+			get_url_thread.start()
+
 	def pause(self):
 		self.__pause_flag = True
 	
@@ -312,6 +304,12 @@ class UrlGetter(object):
 			for ii in book_list:
 				book_buffer.append(ii)
 		return book_buffer
+	
+	def db_info(self):
+		info_buffer = []
+		for i in self.__manager_list:
+			info_buffer.append({"Name": i.config.name, "Info": i.count()})
+		return info_buffer
 	
 	def __get_urls(self, db_manager: WebUrlManager):
 		"""获取网站的所有URL"""
@@ -346,28 +344,24 @@ class UrlGetter(object):
 			# 从网站中获取数据
 			data_got_flag = True
 			while data_got_flag:
-				try:
-					response = Network.get_response(current_url)
+				response = Network.get_response(current_url)
+				if bool(response.response.text):
 					response.response.encoding = config.encoding
 					break
-				except Exception:
-					if not config.is_protected(response):
-						db_manager.sign_url(current_url, db_manager.UrlState.NETWORK_ERROR)
-						self.__url_state_callback(
-							copy.deepcopy(config), current_url, db_manager.UrlState.NETWORK_ERROR[0]
-						)
-						data_got_flag = False
+				if not config.is_protected(response):
+					db_manager.sign_url(current_url, db_manager.UrlState.NETWORK_ERROR)
+					self.__url_state_callback(
+						copy.deepcopy(config), current_url, db_manager.UrlState.NETWORK_ERROR[0]
+					)
+					data_got_flag = False
+				time.sleep(config.wait_time)
 			if not data_got_flag:
 				continue
-			# 检查数据获取是否成功或数据是否为HTML
-			if not response.response.status_code:
-				db_manager.sign_url(current_url, db_manager.UrlState.DATA_ERROR)
-				self.__url_state_callback(
-					copy.deepcopy(config), current_url, db_manager.UrlState.DATA_ERROR[0]
-				)
-				continue
+			data = response.bs.find_all("a")
+			if data is None:
+				data = []
 			# 获取页面的所有URL
-			urls = [response.get_next_url(a_tag.get("href")) for a_tag in response.bs.find_all("a")]
+			urls = [response.get_next_url(a_tag.get("href")) for a_tag in data]
 			urls = list(filter(lambda x: True if x else False, urls))
 			# 将获取的URL添加到数据库中
 			db_manager.append_urls(urls)
@@ -381,6 +375,7 @@ class UrlGetter(object):
 			flag = True
 			while flag:
 				try:
+					response = Network.get_response(current_url)
 					book_info = config.get_book_info(response)
 				except Exception:
 					if not config.is_protected(response):

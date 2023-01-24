@@ -323,7 +323,7 @@ class WebMap(object):
 				copy.deepcopy(one_web_config),  # 防止网站配置文件被更改
 				self.__book_info_callback, self.__chapter_info_callback, self.__finish_callback
 			))
-			self.__logger.object.info(f"添加了一个网站({one_web_config.name})的配置。")
+			self.__logger.object.debug(f"添加了一个网站({one_web_config.name})的配置。")
 		return True
 	
 	def get_web_by_url(self, one_url: str) -> Web:

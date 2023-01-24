@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-# @FileName  :main.py
+# @FileName  :novel_window.py
 # @Time      :03/09/2022 11:41
 # @Author    :Amundsen Severus Rubeus Bjaaland
 

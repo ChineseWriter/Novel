@@ -49,7 +49,6 @@ class DiskTools(object):
 # 创建项目必要的路径
 DiskTools.mkdir("./data")
 DiskTools.mkdir("./data/log")
-DiskTools.mkdir("./data/book_info")
 DiskTools.mkdir("./data/book")
 
 
@@ -176,8 +175,19 @@ class Network(object):
 		# 保存为类属性
 		self.__url = url
 		self.__response = requests.Response()
+		error_info = ""
 		# 发出请求获取数据
-		self.__get()
+		try:
+			self.__response = requests.get(self.__url, headers=self.__header, timeout=21)
+		except (
+			requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError,
+			urllib3.exceptions.ConnectTimeoutError, requests.exceptions.ConnectTimeout, socket.timeout
+		):
+			error_info = traceback.format_exc()
+		except Exception:
+			error_info = traceback.format_exc()
+		if self.__response.status_code is None:
+			self.__logger.object.error(f"请求{self.__url}失败:\n{error_info}")
 	
 	@staticmethod
 	def get_response(url: str) -> "Network":
@@ -206,40 +216,7 @@ class Network(object):
 			return False
 		# 通过检查则该网址合法
 		return True
-	
-	def __get(self):
-		# 下载错误次数记录
-		counter = 1
-		# 反复尝试下载
-		while True:
-			# 记录该次下载起始时间
-			start_time = time.time()
-			# 尝试下载数据，下载成功则跳出循环
-			try:
-				self.__response = requests.get(self.__url, headers=self.__header, timeout=21)
-			except (
-				requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError,
-				urllib3.exceptions.ConnectTimeoutError, requests.exceptions.ConnectTimeout, socket.timeout
-			):
-				pass
-			except Exception:
-				pass
-			else:
-				break
-			# 记录该次下载结束时间
-			finish_time = time.time()
-			# 检查该次下载耗时，若小于5秒，则排除网络不畅问题
-			if finish_time - start_time <= 5:
-				# 记录该次下载错误
-				counter += 1
-			# 若存在5次下载错误，则可能为反爬机制，停止下载30秒
-			if counter % 5 == 0:
-				time.sleep(30)
-			# 若10次停止下载未解决问题，则放弃该次下载
-			if counter == 50:
-				self.__logger.object.warning("暂缓下载未修复错误次数过多的问题，该次下载失败。")
-				break
-	
+			
 	@property
 	def response(self):
 		"""获取requests.Response对象，即该次请求的原始相关数据"""

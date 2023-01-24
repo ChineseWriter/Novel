@@ -5,18 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "搜索书籍",
+            "name": "CMD",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceRoot}/search.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "书籍列表缓存",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceRoot}/cache.py",
+            "program": "${workspaceRoot}/novel_cmd.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -24,7 +16,7 @@
             "name": "GUI",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceRoot}/main.py",
+            "program": "${workspaceRoot}/novel_window.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },

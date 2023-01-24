@@ -110,7 +110,7 @@ class Config3(WebConfig):
 		return ChapterData(index, text)
 
 
-class Config4(WebConfig):
+class Config4(WebConfig):  # TODO 反爬机制
 	main_url = "www.bequwx.com"
 	name = "笔趣阁小说"
 	book_url_pattern = re.compile(r"^/\d+/\d+/$")
@@ -172,7 +172,7 @@ class Config5(WebConfig):
 		return ChapterData(index, text)
 
 
-class Config6(WebConfig):
+class Config6(WebConfig):  # TODO 反爬机制
 	main_url = "www.81zw.com"
 	name = "81中文网"
 	book_url_pattern = re.compile(r"^/book/\d+/$")
@@ -215,7 +215,7 @@ class Config6(WebConfig):
 			return True
 
 
-class Config7(WebConfig):
+class Config7(WebConfig):  # TODO 反爬机制
 	main_url = "www.bequge.cc"
 	name = "新笔趣阁"
 	book_url_pattern = re.compile(r"^/book/\d+/$")
