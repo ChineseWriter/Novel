@@ -68,6 +68,14 @@ class StorageServer(object):
 		
 		# 所有保存形式
 		ALL = [TXT_ONE_FILE, TXT_MANY_FILE, EPUB]
+
+		@classmethod
+		def get(cls, index: int) -> tuple:
+			result = cls.TXT_ONE_FILE
+			for i in cls.ALL:
+				if i[1] == index:
+					result = i
+			return result
 	
 	def __init__(self, book: Book, method: tuple):
 		# 类型检查
@@ -229,10 +237,10 @@ class Network(object):
 	
 	def get_next_url(self, href: str):
 		"""通过传入的url获得下一页的url
-        
-        :param href: url
-        :return: 下一页的url
-        """
+		
+		:param href: url
+		:return: 下一页的url
+		"""
 		# 检查传入的参数是否为str类型
 		if not isinstance(href, str):
 			return self.__url

@@ -11,6 +11,7 @@ from .engines import ENGINE_LIST, MAP
 from .manually_down import BookConfig, ManDown
 from .gui import DownloadFrame
 from .cache import UrlGetter, WebUrlManager
+from .gui_ import DownloadFrame as DownloadFrame_
 
 
 VERSION_HISTORY = [

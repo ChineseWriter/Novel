@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "GUITest",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceRoot}/gui.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "CMD",
             "type": "python",
             "request": "launch",

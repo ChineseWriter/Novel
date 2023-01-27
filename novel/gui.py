@@ -57,7 +57,7 @@ class InfoFrame(tkinter.Frame):
 		return self.__info_table
 	
 	def __chapter_info_callback(
-			self, book_name: str, author: str, chapter_name: str, chapter_text: str, chapter_index: int
+		self, book_name: str, author: str, chapter_name: str, chapter_text: str, chapter_index: int
 	):
 		for index in self.__info_table.get_children():
 			item = self.__info_table.item(index)
