@@ -188,8 +188,10 @@ class Network(object):
 		try:
 			self.__response = requests.get(self.__url, headers=self.__header, timeout=21)
 		except (
-			requests.exceptions.ReadTimeout, urllib3.exceptions.ReadTimeoutError,
-			urllib3.exceptions.ConnectTimeoutError, requests.exceptions.ConnectTimeout, socket.timeout
+			requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError,
+			urllib3.exceptions.ReadTimeoutError, urllib3.exceptions.MaxRetryError,
+			urllib3.exceptions.NewConnectionError, socket.gaierror, socket.timeout,
+			urllib3.exceptions.ConnectTimeoutError, requests.exceptions.ConnectTimeout
 		):
 			error_info = traceback.format_exc()
 		except Exception:

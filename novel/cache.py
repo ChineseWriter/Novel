@@ -239,20 +239,21 @@ class WebUrlManager(object):
 			all_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name}""").fetchall()[0][0]
 			downloaded_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name} WHERE STATE=6""").fetchall()[0][0]
 			book_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name} WHERE IS_BOOK_URL=1""").fetchall()[0][0]
+			downloaded_book_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name}""").fetchall()[0][0]
 		except Exception:
 			self.__db_file.rollback()
 			self.__logger.object.critical(f"获取URL数目数据失败:\n{traceback.format_exc()}")
 		finally:
 			cursor.close()
 			self.__lock.release()
-		return all_number, downloaded_number, book_number
+		return all_number, downloaded_number, book_number, downloaded_book_number
 
 
 class UrlGetter(object):
 	def __init__(
 			self, map: WebMap, db_path: str = "./data/book_info.db",
-			db_state_callback: Callable[[WebConfig, int, int, int], None] =
-			lambda a, b, c, d: print(f"{a.name}: 已找到{b}个网址，已下载{c}个网址，找到书籍网址{d}个。"),
+			db_state_callback: Callable[[WebConfig, int, int, int, int], None] =
+			lambda a, b, c, d, e: print(f"{a.name}: 已找到{b}个网址，已下载{c}个网址，找到书籍网址{d}个，已下载{e}本书籍信息。"),
 			url_state_callback: Callable[[WebConfig, str, str], None] =
 			lambda a, b, c: print(f"{a.name}: {b} {c}!"),
 	):

@@ -9,9 +9,8 @@ from .object import Book, Chapter
 from .config import WebMap, WebConfig
 from .engines import ENGINE_LIST, MAP
 from .manually_down import BookConfig, ManDown
-from .gui import DownloadFrame
 from .cache import UrlGetter, WebUrlManager
-from .gui_ import DownloadFrame as DownloadFrame_
+from .gui import DownloadFrame
 
 
 VERSION_HISTORY = [
@@ -26,6 +25,10 @@ VERSION_HISTORY = [
 	{
 		"Version": "1.0.2",
 		"Changes": "完成了项目文件的初步重构。建立了反爬处理机制。"
+	},
+	{
+		"Version": "1.0.3",
+		"Changes": "初步建立新的GUI。"
 	},
 ]
 
