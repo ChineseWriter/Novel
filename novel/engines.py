@@ -119,7 +119,8 @@ class Config4(WebConfig):  # TODO 反爬机制
 	
 	def get_book_info(self, response: Network) -> BookData:
 		book_name = response.bs.find("h1").text
-		author_name = response.bs.find("div", attrs={"id": "info"}).find("p").text.split("：")[1]
+		author_name_text = response.bs.find("div", attrs={"id": "info"}).find("p").text
+		author_name = author_name_text.split("：")[1]
 		state = Book.BookState.SERIALIZING
 		desc = response.bs.find("div", attrs={"id": "intro"}).text
 		desc = desc.replace("\r", "").replace("\n", "").replace(" ", "").replace(" ", "")

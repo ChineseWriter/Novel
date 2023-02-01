@@ -178,26 +178,19 @@ class Network(object):
 	}
 	# 初始化日志记录器
 	__logger = Logger("Novel.Network", "network")
+	illegal_character = ["\"", "'", "<", ">", "&", "(", ")", ";", "+", "[", "]", "{", "}"]
 	
 	def __init__(self, url: str):
 		# 保存为类属性
 		self.__url = url
 		self.__response = requests.Response()
-		error_info = ""
 		# 发出请求获取数据
 		try:
 			self.__response = requests.get(self.__url, headers=self.__header, timeout=21)
-		except (
-			requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError,
-			urllib3.exceptions.ReadTimeoutError, urllib3.exceptions.MaxRetryError,
-			urllib3.exceptions.NewConnectionError, socket.gaierror, socket.timeout,
-			urllib3.exceptions.ConnectTimeoutError, requests.exceptions.ConnectTimeout
-		):
-			error_info = traceback.format_exc()
 		except Exception:
-			error_info = traceback.format_exc()
+			pass
 		if self.__response.status_code is None:
-			self.__logger.object.error(f"请求{self.__url}失败:\n{error_info}")
+			self.__logger.object.error(f"请求{self.__url}失败")
 	
 	@staticmethod
 	def get_response(url: str) -> "Network":
@@ -224,6 +217,10 @@ class Network(object):
 		# 检查网址是否以http或https开头
 		if url[:4] != "http" and url[:5] != "https":
 			return False
+		# 检查网址是否包含非法字符
+		for i in Network.illegal_character:
+			if i in url:
+				return False
 		# 通过检查则该网址合法
 		return True
 			
@@ -235,7 +232,8 @@ class Network(object):
 	@property
 	def bs(self):
 		"""获取请求的网页对象"""
-		return BeautifulSoup(self.__response.text, "lxml")
+		text = self.__response.text.replace("\xa0", " ").replace("\r", "").replace("\n", "")
+		return BeautifulSoup(text, "lxml")
 	
 	def get_next_url(self, href: str):
 		"""通过传入的url获得下一页的url
@@ -251,9 +249,11 @@ class Network(object):
 			# 为空则返回该网站的主网址
 			main_url = urlparse(self.__url)
 			return f"{main_url.scheme}://{main_url.netloc}/"
-		# 检查该网址是否包含JavaScript代码
-		if "(" in href:
-			return self.__url
+		# 检查该网址是否包含非法字符
+		for i in self.illegal_character:
+			if i in href:
+				main_url = urlparse(self.__url)
+				return f"{main_url.scheme}://{main_url.netloc}/"
 		# 解析该请求中的网址
 		main_url = urlparse(self.__url)
 		# 解析传入的网址

@@ -9,7 +9,7 @@ import tkinter
 import tkinter.messagebox
 
 from novel import VERSION, UrlGetter
-from novel import DownloadFrame_ as DownloadFrame
+from novel import DownloadFrame
 
 
 if __name__ == "__main__":
@@ -19,6 +19,7 @@ if __name__ == "__main__":
 	main_window.config(menu=app.main_menu)
 	app.pack()
 	url_getter = UrlGetter(app.web_map)
+	app.url_getter = url_getter
 	url_getter.start()
 	
 	

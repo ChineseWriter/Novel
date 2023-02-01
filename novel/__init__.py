@@ -28,7 +28,7 @@ VERSION_HISTORY = [
 	},
 	{
 		"Version": "1.0.3",
-		"Changes": "初步建立新的GUI。"
+		"Changes": "完成了项目文件的重构，初步建立新的GUI。"
 	},
 ]
 

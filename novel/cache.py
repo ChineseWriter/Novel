@@ -239,7 +239,7 @@ class WebUrlManager(object):
 			all_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name}""").fetchall()[0][0]
 			downloaded_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name} WHERE STATE=6""").fetchall()[0][0]
 			book_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name} WHERE IS_BOOK_URL=1""").fetchall()[0][0]
-			downloaded_book_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__url_table_name}""").fetchall()[0][0]
+			downloaded_book_number = cursor.execute(f"""SELECT COUNT(*) FROM {self.__book_info_table_name}""").fetchall()[0][0]
 		except Exception:
 			self.__db_file.rollback()
 			self.__logger.object.critical(f"获取URL数目数据失败:\n{traceback.format_exc()}")
@@ -277,6 +277,14 @@ class UrlGetter(object):
 			# 加入线程容器
 			get_url_thread = threading.Thread(target=self.__get_urls, args=(i,), name=f"Thread-{i.config.name}")
 			self.__thread_list.append(get_url_thread)
+	
+	@property
+	def db_state_callback(self):
+		return self.__db_state_callback
+	
+	@db_state_callback.setter
+	def db_state_callback(self, db_state_callback):
+		self.__db_state_callback = db_state_callback
 	
 	def start(self):
 		for get_url_thread in self.__thread_list:
@@ -377,8 +385,10 @@ class UrlGetter(object):
 			while flag:
 				try:
 					response = Network.get_response(current_url)
+					response.response.encoding = config.encoding
 					book_info = config.get_book_info(response)
 				except Exception:
+					error = traceback.format_exc()
 					if not config.is_protected(response):
 						db_manager.sign_url(current_url, db_manager.UrlState.ANALYZE_ERROR)
 						self.__url_state_callback(
