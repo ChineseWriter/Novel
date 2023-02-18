@@ -39,7 +39,7 @@ class DiskTools(object):
 			return True
 		# 创建目录
 		try:
-			os.mkdir(path)
+			os.makedirs(path)
 		except OSError:
 			return False
 		else:
@@ -140,32 +140,29 @@ class StorageServer(object):
 		book_dir_path = os.path.join(path, f"{self.__book.author} - {self.__book.book_name}")
 		# 创建书籍文件夹
 		DiskTools.mkdir(book_dir_path)
-		# 书籍文件编号
-		counter_file = 1
-		# 章节编号
-		counter_chapter = 0
-		# 每十章保存为一个书籍文件
+		counter_one = 0
+		counter_ten = 0
+		counter_hundred = 0
+		counter_thousand = 0
 		for i in self.__book.chapter_list:
-			# 生成书籍文件名
-			book_file_name = f"第{str(counter_file).rjust(5, '0')}批.txt"
-			# 生成书籍文件路径
-			book_file_path = os.path.join(book_dir_path, book_file_name)
-			# 打开文件并保存书籍内容，若文件存在则不会清空文件
-			with open(book_file_path, "a+", encoding="UTF-8") as File:
-				File.write(f"{i.chapter_name}\n{i.text}\n")
-			# 将章节编号加一
-			counter_chapter += 1
-			# 检测该文件内保存了多少章节
-			if counter_chapter == 10:
-				# 若保存了十章，则改变书籍文件编号
-				counter_file += 1
-				counter_chapter = 0
-		# 获取文件夹内每个文件的大小
-		file_size_list = [
-			os.path.getsize(os.path.join(book_dir_path, one_file_name)) for one_file_name in os.listdir(book_dir_path)
-		]
+			counter_one += 1
+			book_file_folder_path = \
+				f"第{str(counter_thousand*1000+1).rjust(5, '0')}-{str((counter_thousand+1)*1000).rjust(5, '0')}章" \
+				f"/第{str(counter_hundred*100+1).rjust(5, '0')}-{str((counter_hundred+1)*100).rjust(5, '0')}章"
+			book_file_folder_path = os.path.join(book_dir_path, book_file_folder_path)
+			DiskTools.mkdir(book_file_folder_path)
+			book_name = f"第{str(counter_ten*10+1).rjust(5, '0')}-{str((counter_ten+1)*10).rjust(5, '0')}章.txt"
+			book_file_path = os.path.join(book_file_folder_path, book_name)
+			with open(book_file_path, "a", encoding="UTF-8") as book_file:
+				book_file.write(f"{i.chapter_name}\n{i.text}\n\n")
+			if counter_one % 10 == 0:
+				counter_ten += 1
+			if counter_ten > 0 and counter_ten % 10 == 0 and counter_one % 10 == 0:
+				counter_hundred += 1
+			if counter_hundred > 0 and counter_hundred % 10 == 0 and counter_ten % 10 == 0 and counter_one % 10 == 0:
+				counter_thousand += 1
 		# 返回文件的大小
-		return sum(file_size_list)
+		return 0
 
 
 class Network(object):

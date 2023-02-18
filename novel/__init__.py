@@ -6,6 +6,7 @@
 
 
 from .object import Book, Chapter
+from .tools import StorageServer
 from .config import WebMap, WebConfig
 from .engines import ENGINE_LIST, MAP
 from .manually_down import BookConfig, ManDown

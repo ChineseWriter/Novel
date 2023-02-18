@@ -228,7 +228,7 @@ class DownloadFrame(tkinter.Frame):
 		StorageServer(
 			self.__map.download(book_url), 
 			StorageServer.StorageMethod.get(
-				self.__download_type_flag
+				self.__download_type_flag.get()
 			)
 		).save()
 	
