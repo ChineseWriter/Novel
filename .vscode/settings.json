@@ -1,8 +1,11 @@
 {
-    "iis.configDir": "",
     "files.exclude": {
         "**/.git": true,
         ".idea/": true,
         ".history": true
-    }
+    },
+    "debug.terminal.clearBeforeReusing": true,
+    "debug.showBreakpointsInOverviewRuler": true,
+    "debug.hideLauncherWhileDebugging": false,
+    "debug.closeReadonlyTabsOnEnd": true
 }

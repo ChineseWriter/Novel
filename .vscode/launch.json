@@ -5,13 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "启动测试程序",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "console": "integratedTerminal"
-        },
-        {
             "name": "启动主程序",
             "type": "debugpy",
             "request": "launch",
@@ -24,6 +17,21 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
-        }
+        },
+        {
+            "name": "测试命令行_1",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/downloader.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "测试命令行_2",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/downloader.py",
+            "console": "integratedTerminal",
+            "args": ["test_run"]
+        },
     ]
 }
