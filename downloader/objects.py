@@ -14,6 +14,22 @@ from bs4.element import Tag
 import jieba
 
 
+class BookState(object):
+	"""书籍的状态常量"""
+	END = ("完结", 1)
+	SERIALIZING = ("连载中", 2)
+	FORECAST = ("预告", 3)
+	BREAK = ("断更", 4)
+	
+	STATE_LIST = (END, SERIALIZING, FORECAST, BREAK)
+	
+	@classmethod
+	def transform(cls, number: int):
+		for i in cls.STATE_LIST:
+			if number == i[1]: return i
+		return cls.SERIALIZING
+
+
 class Chapter(object):
 	def __init__(
 			self, book_name: str, index: int, chapter_name: str,
@@ -58,3 +74,14 @@ class Chapter(object):
 		word_counter = Counter()
 		word_counter.update(words)
 		return word_counter
+
+
+class Book(object):
+	def __init__(
+			self, book_name: str, author: str, state: tuple, source: str, desc: str
+		):
+		self.__book_name = book_name
+		self.__author = author
+		self.__state = state
+		self.__source = source
+		self.__desc = desc

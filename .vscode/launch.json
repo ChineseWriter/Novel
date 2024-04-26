@@ -31,7 +31,9 @@
             "request": "launch",
             "program": "${workspaceFolder}/downloader.py",
             "console": "integratedTerminal",
-            "args": ["test_cmd"]
+            "args": [
+                "test_cmd"
+            ]
         },
         {
             "name": "运行测试",
@@ -39,7 +41,9 @@
             "request": "launch",
             "program": "${workspaceFolder}/downloader.py",
             "console": "integratedTerminal",
-            "args": ["run_test"]
+            "args": [
+                "run_test"
+            ]
         },
     ]
 }
