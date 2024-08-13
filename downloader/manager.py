@@ -8,7 +8,7 @@
 import threading
 
 from .logs import Logger
-from .objects import Chapter
+from .books import NovelChapter
 
 
 def singleton(cls):
@@ -27,11 +27,4 @@ def singleton(cls):
 @singleton
 class Manager(object):
     def __init__(self):
-        self.__logger = Logger()
-    
-    def create_chapter(
-        self, book_name: str, index: int, chapter_name: str,
-        source: str, content: str = ""
-    ):
-        self.__logger.books.debug(f"创建了名为{chapter_name}的章节。")
-        return Chapter(book_name, index, chapter_name, source, content)
+        pass

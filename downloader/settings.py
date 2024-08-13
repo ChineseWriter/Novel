@@ -13,5 +13,9 @@ class Settings(object):
     DEBUG = True
 
     LOG_DIR = os.path.join(DATA_DIR, "logs")
-    LOG_FORMAT = "[%(asctime)s]{%(levelname)s} %(name)s (%(filename)s - %(lineno)s):\n\t%(message)s"
+    LOG_FORMAT = "[%(asctime)s]{%(levelname)s} %(name)s (%(filename)s - %(lineno)s):\n%(message)s"
+
+    BOOKS_DIR = os.path.join(DATA_DIR, "books")
+    BOOKS_CACHE_DIR = os.path.join(BOOKS_DIR, "cache")
+    BOOKS_STORAGE_DIR = os.path.join(BOOKS_DIR, "storage")
 

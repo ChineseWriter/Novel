@@ -8,5 +8,12 @@
             "args": ["freeze", ">", "requirements.txt"],
             "problemMatcher": []
         }
+        {
+            "label": "生成项目的 Rust 库",
+            "type": "shell",
+            "command": "${workspaceFolder}/r_lib_build.bat",
+            "args": [],
+            "problemMatcher": []
+        }
     ]
 }

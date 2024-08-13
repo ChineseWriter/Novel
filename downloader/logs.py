@@ -7,7 +7,7 @@
 
 import os
 import logging
-from re import DEBUG
+import threading
 
 from .settings import Settings
 
@@ -18,6 +18,20 @@ try: os.mkdir(Settings.LOG_DIR)
 except FileExistsError: pass
 
 
+def singleton(cls):
+    thread_lock = threading.Lock()
+    manager = {}
+
+    def _singleton():
+        with thread_lock:
+            if cls not in manager:
+                manager[cls] = cls()
+        return manager[cls]
+    
+    return _singleton
+
+
+@singleton
 class Logger(object):
     ROOT_NAME = "downloader"
     LOGGER_LIST = ("test", "books")
@@ -38,7 +52,7 @@ class Logger(object):
         file_handler = logging.FileHandler(
             os.path.join(Settings.LOG_DIR, f"{name}.dlog"), encoding="UTF-8"
         )
-        file_handler.setLevel(logging.DEBUG if Settings.DEBUG else logging.WARNING)
+        file_handler.setLevel(logging.WARNING)
         file_handler.setFormatter(logging.Formatter(Settings.LOG_FORMAT))
         return file_handler
     
