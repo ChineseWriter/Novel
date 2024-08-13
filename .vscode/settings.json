@@ -2,7 +2,8 @@
     "files.exclude": {
         "**/.git": true,
         ".idea/": true,
-        ".history": true
+        ".history": true,
+		"**/py.typed": true
     },
     "debug.terminal.clearBeforeReusing": true,
     "debug.showBreakpointsInOverviewRuler": true,

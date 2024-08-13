@@ -125,7 +125,6 @@ class Chapter(object):
                     txt_file.write("\n".join(text))
         
 
-
 class Book(object):
     class BookState(object):
         """书籍的状态常量"""
@@ -209,5 +208,10 @@ class Saver(object):
                     return i
             return cls.EPUB
     
-    def __init__(self, ):
+    def __init__(self, book: Book, method: tuple):
+        self.__book = book
+        self.__method = method
+        self.__save()
+    
+    def __save(self):
         pass
