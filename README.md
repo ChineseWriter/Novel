@@ -9,5 +9,5 @@
 ## 重用内部 downloader 包
 
 ## 项目进度
-所有项目相关的进度请移步[计划](/docs/plans.md)。  
+所有项目相关的进度请移步[计划](/docs/plans.md)。
 

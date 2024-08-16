@@ -7,4 +7,4 @@
 
 # 预导入自定义函数(类)
 from .manager import Manager
-from .books import NovelChapter, CartoonChapter, Book
+from .books import Chapter, Book

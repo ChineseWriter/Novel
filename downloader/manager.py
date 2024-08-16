@@ -8,7 +8,6 @@
 import threading
 
 from .logs import Logger
-from .books import NovelChapter
 
 
 def singleton(cls):

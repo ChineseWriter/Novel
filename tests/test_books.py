@@ -7,10 +7,6 @@
 
 import os
 
-from PIL import Image
-from io import BytesIO
-from bs4 import BeautifulSoup as bs
-
 from downloader import books
 
 

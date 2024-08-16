@@ -20,7 +20,7 @@ except ImportError:
     ]
     def mkdir(path: str) -> None:
         """创建文件夹，若文件夹已存在则不进行任何操作
-        
+
         :param path: 要创建的文件的路径
         """
         try: os.makedirs(path)
@@ -39,16 +39,16 @@ class Chapter(object):
     class StorageMethod(object):
         MEMORY = ("内存", 1)
         DISK = ("硬盘", 2)
-        
+
         METHOD_LIST = (MEMORY, DISK)
-        
+
         @classmethod
         def transform(cls, number: int):
             for i in cls.METHOD_LIST:
                 if number == i[1]:
                     return i
             return cls.MEMORY
-    
+
     def __init__(
         self, name: str, index: int, source: str,
         book_name: str, text: Tuple = (),
@@ -73,27 +73,27 @@ class Chapter(object):
             case _:
                 self.__content = list(text)
                 self.__storage_method = self.StorageMethod.MEMORY
-    
+
     def __len__(self): return len(self.text)
-    
+
     def __str__(self):
         return f"第{str(self.__index).rjust(4, '0')}章 {self.__name}\n{self.text}\n\n"
-    
+
     def __repr__(self):
         return f"<Chapter index={self.__index} name={self.__name} book_name={self.__book_name}>"
-    
+
     def __hash__(self):
         text = f"{str(self.__index).rjust(4, '0')}{self.name}{self.book_name}".encode()
         sha256_hash = hashlib.sha256(text)
         hash_value = sha256_hash.hexdigest()
         return int(hash_value, 16)
-    
+
     def __eq__(self, other: "Chapter"):
         if isinstance(other, Chapter) and \
             hash(self) == hash(other):
             return True
         return False
-    
+
     @property
     def name(self): return self.__name
     @property
@@ -102,7 +102,7 @@ class Chapter(object):
     def source(self): return self.__source
     @property
     def book_name(self): return self.__book_name
-    
+
     @property
     def text(self) -> str:
         match self.__storage_method:
@@ -114,7 +114,7 @@ class Chapter(object):
                     content = txt_file.readlines()
                 return "\n\t".join([i.strip("\n") for i in content])
             case _: return ""
-    
+
     @text.setter
     def text(self, text: Union[Tuple[str], List[str]]):
         match self.__storage_method:
@@ -123,7 +123,7 @@ class Chapter(object):
             case self.StorageMethod.DISK:
                 with open(self.__file_path, "w", encoding="UTF-8") as txt_file:
                     txt_file.write("\n".join(text))
-        
+
 
 class Book(object):
     class BookState(object):
@@ -131,16 +131,16 @@ class Book(object):
         END = ("完结", 1)  # 已完结状态常量
         SERIALIZING = ("连载中", 2)  # 连载中状态常量
         FORECAST = ("预告", 3)  # 预告状态常量
-        
+
         STATE_LIST = (END, SERIALIZING, FORECAST)
-        
+
         @classmethod
         def transform(cls, number: int):
             for i in cls.STATE_LIST:
                 if number == i[1]:
                     return i
             return cls.SERIALIZING
-    
+
     def __init__(self, name: str, author: str, state: tuple, source: str, desc: str = ""):
         self.__name: str = name
         self.__author: str = author
@@ -148,25 +148,25 @@ class Book(object):
         self.__source: str = source
         self.__desc: str = desc
         self.__chapter_list: List[Chapter] = []
-        
+
     def __len__(self):
         return len(self.__chapter_list)
-    
+
     def __repr__(self):
         return f"<Book name={self.__name} author={self.__author}>"
-    
+
     def __hash__(self):
         text = f"{self.name}{self.author}{self.state[0]}".encode()
         sha256_hash = hashlib.sha256(text)
         hash_value = sha256_hash.hexdigest()
         return int(hash_value, 16)
-    
+
     def __eq__(self, other: "Book"):
         if isinstance(other, Book) and \
             hash(self) == hash(other):
             return True
         return False
-    
+
     @property
     def name(self): return self.__name
     @property
@@ -177,12 +177,12 @@ class Book(object):
     def source(self): return self.__source
     @property
     def desc(self): return self.__desc
-    
+
     def __index_list(self) -> List[int]:
         index_list = [i.index for i in self.__chapter_list]
         index_list.sort()
         return index_list
-    
+
     def append(self, chapter: Chapter) -> bool:
         if (chapter.book_name != self.name) or \
             (chapter.index in self.__index_list()):
@@ -198,20 +198,20 @@ class Saver(object):
         MANY_TXT_FILE = ("多个txt文件", 2)
         EPUB = ("epub文件", 3)
         PDF = ("pdf文件", 4)
-        
+
         METHOD_LIST = (ONE_TXT_FILE, MANY_TXT_FILE, EPUB, PDF)
-        
+
         @classmethod
         def transform(cls, number: int):
             for i in cls.METHOD_LIST:
                 if number == i[1]:
                     return i
             return cls.EPUB
-    
+
     def __init__(self, book: Book, method: tuple):
         self.__book = book
         self.__method = method
         self.__save()
-    
+
     def __save(self):
         pass

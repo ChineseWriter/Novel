@@ -17,12 +17,14 @@ class IngestionStage(object):
     def run(self):
         return 'Ingesting! Nom nom nom...'
 
+
 class DigestionStage(object):
     def run(self, volume=1):
         return ' '.join(['Burp!'] * volume)
 
     def status(self):
         return 'Satiated.'
+
 
 class Pipeline(object):
     def __init__(self):
@@ -32,10 +34,10 @@ class Pipeline(object):
     def run(self):
         self.ingestion.run()
         self.digestion.run()
-    
+
     def test_cmd(self):
         print("命令行可正常使用。")
-    
+
     def run_test(self):
         import pytest
         pytest.main(["-s", "tests"])
