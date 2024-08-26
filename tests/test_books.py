@@ -52,12 +52,12 @@ class TestObject:
         test_chapter_2 = Chapter(
             "TestChapter2", 2, "http://example.com/", "TestBook",
             ("This is the first line.", "This is the second line."),
-            Chapter.StorageMethod.MEMORY
+            Chapter.StorageMethod.DISK
         )
         test_chapter_3 = Chapter(
             "TestChapter1", 1, "http://example.com/", "TestBook",
             ("This is the first line.", "This is the second line."),
-            Chapter.StorageMethod.MEMORY
+            Chapter.StorageMethod.DISK
         )
         assert test_chapter_1.text == \
             "\tThis is the first line.\n\tThis is the second line."

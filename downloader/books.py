@@ -70,14 +70,16 @@ class Chapter(object):
                 self.__content = list(text)
             case self.StorageMethod.DISK:
                 if settings_flag:
-                    self.__file_path = \
+                    self.__dir_path = \
                         os.path.join(
-                            Settings.BOOKS_CACHE_DIR,
-                            f"{book_name}\\{name}.txt"
-                        )
+							Settings.BOOKS_CACHE_DIR,
+							book_name
+						)
                 else:
-                    self.__file_path = \
-                        f"./data/books/cache/{book_name}/{name}.txt"
+                    self.__dir_path = \
+                        f"./data/books/cache/{book_name}"
+                mkdir(self.__dir_path)
+                self.__file_path = os.path.join(self.__dir_path, f"{name}.txt")
                 with open(self.__file_path, "w", encoding="UTF-8") as txt_file:
                     txt_file.write("\n".join(text))
             case _:
