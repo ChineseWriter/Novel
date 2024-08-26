@@ -41,7 +41,7 @@ class TestConstant:
             Chapter.StorageMethod.MEMORY,
             Chapter.StorageMethod.DISK
         )
-    
+
     def test_save_method(self):
         assert Book.SaveMethod.transform(1) == \
             Book.SaveMethod.TXT
@@ -70,14 +70,14 @@ class TestObject:
             ("This is the first line.", "This is the second line."),
             Chapter.StorageMethod.DISK
         )
-        
+
         assert test_chapter_1.text == \
             "\tThis is the first line.\n\tThis is the second line."
         assert len(test_chapter_1) == 50
         assert str(test_chapter_1) == "第0001章 TestChapter1\n\t" \
             "This is the first line.\n\tThis is the second line.\n\n"
         assert test_chapter_1 == test_chapter_3
-        
+
         test_chapter_1.text = [
             "This is the first line.", "This is the second line.",
             "This is the third line."
@@ -88,7 +88,7 @@ class TestObject:
         ]
         assert len(test_chapter_1) == 75
         assert len(test_chapter_3) == 75
-    
+
     def test_book(self):
         test_chapter_1 = Chapter(
             "TestChapter1", 1, "http://example.com/", "TestBook",
@@ -109,18 +109,18 @@ class TestObject:
         )
         test_book_1.append(test_chapter_1)
         test_book_1.append(test_chapter_2)
-        
+
         assert len(test_book_1) == 2
         assert len(test_book_2) == 0
         assert test_book_1 == test_book_2
         assert test_book_1.index_list == [1, 2]
         assert list(test_book_1.chapter_list) == \
             [test_chapter_1, test_chapter_2]
-    
+
     def test_book_save(self):
         with open("./tests/book.jpg", "rb") as pic_file:
             pic = pic_file.read()
-        
+
         test_book_1 = Book(
             "TestBook", "TestAuthor", Book.State.END,
             "https://example.com/1/", "TestDescription_1", pic
@@ -136,9 +136,6 @@ class TestObject:
         )
         test_book_1.append(test_chapter_1)
         test_book_1.append(test_chapter_2)
-        
+
         test_book_1.save(Book.SaveMethod.TXT)
         test_book_1.save(Book.SaveMethod.EPUB)
-        
-        
-        
