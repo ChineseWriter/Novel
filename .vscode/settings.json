@@ -1,0 +1,16 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        ".idea/": true,
+        ".history": true,
+		"**/py.typed": true
+    },
+    "debug.terminal.clearBeforeReusing": true,
+    "debug.showBreakpointsInOverviewRuler": true,
+    "debug.hideLauncherWhileDebugging": false,
+    "debug.closeReadonlyTabsOnEnd": true,
+    "iis.configDir": "",
+    "python.defaultInterpreterPath": "\\.venv\\Scripts\\python.exe",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true
+}
