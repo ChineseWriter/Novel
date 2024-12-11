@@ -27,6 +27,8 @@
 
 目前该程序支持的操作都在 downloader.py 文件中, 要使用该程序请输入`python downloader.py`, 在这之后跟进输入命令即可.
 
+这是一个示例性命令: `python downloader.py download_novels --multi_thread=false`
+
 以下是支持的命令列表:
 | 计数 | 名称 | 参数(非全局) | 用途 |
 | :-: | :-: | :-: | :-: |
@@ -34,7 +36,7 @@
 | 2 | run_test | 无 | 运行程序测试, 用于开发时测试找 BUG |
 | 3 | download_novel | url: str | 下载指定 URL 下的书籍 |
 | 4 | download_novels | 无 | 从 book_urls.txt 文件中读取所有 URL 并下载它们下的书籍, 若文件不存在则自动创建并退出 |
-| 5 | search_books_by_name | name: str | 从本地书架中寻找书籍 |
+| 5 | search_books_by_name | name: str | 从本地书架中寻找书籍, 该命令处于测试阶段 |
 
 以下是可以指定的全局设置参数:
 | 计数 | 参数名 | 用途 | 默认值 |

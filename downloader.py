@@ -33,9 +33,9 @@ class Pipeline(object):
     def __init__(self, **other_settings):
         settings_args = changable_args()
         for key, item in other_settings.items():
-            if item == "true":
+            if (item == "true") or (item == "True"):
                 item = True
-            if item == "false":
+            if (item == "false") or (item == "False"):
                 item = False
             if key.upper() in settings_args:
                 setattr(downloader.Settings, key.upper(), item)
