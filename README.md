@@ -42,7 +42,7 @@
 | 1 | debug | 程序是否在测试模式下运行, 主要改变程序日志的输出情况 | False |
 | 2 | data_dir | 程序运行数据保存的文件夹位置 | (该项目根目录) |
 | 3 | multi_thread | 下载书籍章节时是否采用多线程, 若某引擎不支持, 则该参数在该引擎上无效 | True |
-| 4 | force_reload | 是否要强制从网站上获取 | False |
+| 4 | force_reload | 是否要强制从网站上获取内容, 这会覆盖掉本地的缓存 | False |
 | 5 | log_file_name | 日志文件的文件名 | "logs" |
 | 6 | log_format | 日志的格式 | "[%(asctime)s]{%(levelname)s} %(name)s (%(filename)s - %(lineno)s):\n\t%(message)s" |
 
