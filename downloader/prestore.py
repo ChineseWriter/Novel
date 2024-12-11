@@ -21,14 +21,6 @@ from .tools import SQLManager, str_hash, mkdir
 from .web_manager import DownloadManager, BookWeb
 
 
-# 提取必要的设置作为模块的全局设置
-_DATA_DIR = Settings.DATA_DIR
-_URLS_DB_DIR = Settings.URLS_DIR
-
-mkdir(_DATA_DIR)
-mkdir(_URLS_DB_DIR)
-
-
 class PreStore(object):
     BOOK_SHELF = BookShelf()
     
@@ -47,9 +39,11 @@ class PreStore(object):
     UPDATE_URL = "UPDATE URLS SET VISITED=?,IS_404=?,IS_BOOK=?,IS_CHAPTER=? WHERE HASH=?"
     
     def __init__(self, engine: BookWeb, book_info_callback: Callable[[Book], None]):
+        mkdir(Settings.DATA_DIR)
+        mkdir(Settings.URLS_DIR)
         self.__engine = engine
         self.__book_info_callback = book_info_callback
-        db_path = os.path.join(_URLS_DB_DIR, str(hash(engine)))
+        db_path = os.path.join(Settings.URLS_DIR, str(hash(engine)))
         self.__sql_manager = SQLManager(db_path)
         self.__create_table()
         

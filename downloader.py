@@ -19,9 +19,17 @@ import downloader
 class Pipeline(object):
     SAVE_METHOD = downloader.Book.SaveMethod
     
-    def __init__(self, debug: bool = False):
-        self.__settings = downloader.Settings
-        self.__settings.DEBUG = debug # type: ignore
+    def __init__(self, **other_settings):
+        for key, item in other_settings.items():
+            if item == "true":
+                item = True
+            if item == "false":
+                item = False
+            if key.upper() in dir(downloader.Settings):
+                setattr(downloader.Settings, key.upper(), item)
+            else:
+                print(f"存在未知的全局设置: {key}")
+                sys.exit(-1)
 
     def test_cmd(self):
         print("命令行可正常使用。")
@@ -30,25 +38,23 @@ class Pipeline(object):
         import pytest
         pytest.main(["-s", "tests"])
     
-    def download_novel(self, url: str, multi_thread: int = 1, save_method: int = 1):
+    def download_novel(self, url: str, save_method: int = 1):
         # 将数字表示的保存方式改为保存方式常量
         method = downloader.Book.SaveMethod.transform(save_method)
         # 获取网站引擎管理类
         manager = downloader.WebManager()
         
         # 下载指定的书籍
-        book = manager.download(url, True if multi_thread else False)
+        book = manager.download(url)
         # 保存书籍后退出程序
         if book != downloader.EMPTY_BOOK:
             book.save(method)
         return None
     
-    def download_novels(self, multi_thread: int = 1, save_method: int = 1):
+    def download_novels(self, save_method: int = 1):
         BOOK_URLS_FILE = "book_urls.txt"
         # 将数字表示的保存方式改为保存方式常量
         method = downloader.Book.SaveMethod.transform(save_method)
-        # 将数字表示的多线程标志转换为标准标志
-        multi_thread_flag = True if multi_thread else False
         # 获取网站引擎管理类
         manager = downloader.WebManager()
         
@@ -86,7 +92,7 @@ class Pipeline(object):
         
         for one_url in urls:
             # 下载指定的书籍
-            book = manager.download(one_url, multi_thread_flag)
+            book = manager.download(one_url)
             # 保存书籍后退出程序
             if book != downloader.EMPTY_BOOK:
                 book.save(method)

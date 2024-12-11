@@ -19,42 +19,13 @@ import yaml  # 该库用 pip 安装时的名称为 pyyaml
 from ebooklib import epub
 from PIL import Image
 
+# 导入自定义库
+from .tools import mkdir
+from .settings import Settings
+
+
 # 初始化程序常量和必要函数
 _EMPTY_TIP = "段落内容为空"
-try:
-    # 尝试从包中的设置文件导入
-    from .tools import mkdir
-    from .settings import Settings
-    
-    # 提取必要的设置作为模块的全局设置
-    _DATA_DIR = Settings.DATA_DIR
-    _BOOKS_DIR = Settings.BOOKS_DIR
-    _BOOKS_CACHE_DIR = Settings.BOOKS_CACHE_DIR
-    _BOOKS_STORAGE_DIR = Settings.BOOKS_STORAGE_DIR
-except ImportError:
-    # 不存在则说明该文件正在以单个 script 运行
-    # 将创建必要的设置和运行函数
-    _DATA_DIR = os.path.abspath("./data")
-    _BOOKS_DIR = os.path.abspath("./data/books")
-    _BOOKS_CACHE_DIR = os.path.abspath("./data/books/cache")
-    _BOOKS_STORAGE_DIR = os.path.abspath("./data/books/storage")
-
-    def mkdir(path: str) -> None:
-        """创建文件夹，若文件夹已存在则不进行任何操作
-
-        :param path: 要创建的文件的路径
-        :type path: str
-        """
-        try:
-            os.makedirs(path)
-        except FileExistsError:
-            pass
-finally:
-    # 尝试创建所有需要的文件夹
-    REQUIRED_DIRS = [
-        _DATA_DIR, _BOOKS_DIR, _BOOKS_CACHE_DIR, _BOOKS_STORAGE_DIR
-    ]
-    [mkdir(i) for i in REQUIRED_DIRS]
 
 
 # Windows 路径中所有非法字符及其替代方案
@@ -157,7 +128,7 @@ class Chapter(object):
             case self.StorageMethod.DISK:
                 # 依据书籍名创建章节缓存目录, 即所有数据按照书籍名分区
                 self.__dir_path = \
-                    os.path.join(_BOOKS_CACHE_DIR, book_name)
+                    os.path.join(Settings.BOOKS_CACHE_DIR, book_name)
                 mkdir(self.__dir_path)
                 # 在对应书籍缓存目录下创建该章节的缓存文件, 并将章节内容写入
                 self.__file_path = os.path.join(self.__dir_path, f"{name}.txt")
@@ -506,7 +477,7 @@ class Saver(object):
         self.__method = method
         # 生成保存路径
         self.__path = os.path.join(
-            _BOOKS_STORAGE_DIR, f"{book.author} - {book.name}.{method.value[2]}"
+            Settings.BOOKS_STORAGE_DIR, f"{book.author} - {book.name}.{method.value[2]}"
         )
 
     def save(self) -> int:

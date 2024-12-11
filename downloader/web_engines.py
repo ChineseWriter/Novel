@@ -103,8 +103,14 @@ class Engine2(BookWeb):
         return [response.get_next_url(i) for i in url_list]
 
     def get_chapter(self, response: Network) -> Chapter:
-        name = response.bs.find("div", attrs={"class": "text-head"}).find("h3").text.split(" ")[-1]
-        text = response.bs.find("div", attrs={"class": "read-content j_readContent"}).find_all("p")
+        flag = response.bs.find("div", attrs={"class": "text-head"})
+        if flag is None:
+            article = response.bs.find("article")
+            name = article.find("h3").text.split(" ")[-1]
+            text = article.find_all("p")
+        else:
+            name = flag.find("h3").text.split(" ")[-1]
+            text = response.bs.find("div", attrs={"class": "read-content j_readContent"}).find_all("p")
         text = [i.text.strip("\r\n ").replace("\u3000", "") for i in text]
         if text[0] == '章节内容转码失败！':
             raise ProtectedError("存在反爬机制!")

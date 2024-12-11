@@ -21,6 +21,7 @@ from tqdm import tqdm
 
 #导入自定义库
 from .network import Network
+from .settings import Settings
 from .books import Book, Chapter, EMPTY_BOOK
 
 
@@ -207,25 +208,21 @@ class WebManager(object):
         # 如果已存在则不做任何操作并返回 False
         return False
     
-    def download(self, url: str, multi_thread: bool = True) -> Book:
+    def download(self, url: str) -> Book:
         """下载书籍
         
         :param url: 书籍信息页面的地址
         :type url: str
-        :param multi_thread: 是否启用多线程, 默认启用
-        :type multi_thread: bool
         """
         # 确认传入的参数的类型是否正确
         assert isinstance(url, str)
-        assert isinstance(multi_thread, bool)
         # 获取对应的引擎
         engine = self.get_engine(url)
         # 检查是否存在支持该网址的引擎
         if engine is None:
             return EMPTY_BOOK
         # 返回下载的结果
-        return DownloadManager(url, engine, *default_callback()) \
-            .download(multi_thread=multi_thread)
+        return DownloadManager(url, engine, *default_callback()).download()
 
 
 class DownloadManager(object):
@@ -269,13 +266,11 @@ class DownloadManager(object):
         # 启用书架, 以保存下载过的数据
         self.__book_shelf = BookShelf()
     
-    def download(self, only_info: bool = False, multi_thread: bool = True) -> Book:
+    def download(self, only_info: bool = False) -> Book:
         """下载书籍
         
         :param only_info: 是否要只下载书籍信息, 而不是整本书籍, 为 True 则只下载信息
         :type only_info: bool
-        :param multi_thread: 是否要使用多线程下载, 为 True 则启用多线程
-        :type multi_thread: bool
         """
         # 获取基本书籍信息
         book_obj, chapter_list = self.__download_book_info()
@@ -283,7 +278,7 @@ class DownloadManager(object):
         if only_info:
             return book_obj
         # 下载章节内容
-        book = self.__download_chapters_content(book_obj, chapter_list, multi_thread)
+        book = self.__download_chapters_content(book_obj, chapter_list)
         # 调用停止下载回调函数, 防止出现进度条等组件未正确退出的情况
         try:
             self.__stop_callback()
@@ -312,13 +307,11 @@ class DownloadManager(object):
                 if engine.is_protected(None, network_error, None):
                     engine.prevent_protected()
                     continue
-                else:
-                    try:
-                        self.__error_callback(network_error)
-                    except Exception:
-                        pass
-                    finally:
-                        return False, None
+                try:
+                    self.__error_callback(network_error)
+                except Exception:
+                    pass
+                return False, None
             # 尝试使用给定的函数解析内容
             try:
                 result = operate_func(network_obj)
@@ -326,13 +319,11 @@ class DownloadManager(object):
                 if engine.is_protected(network_obj, None, analyze_error):
                     engine.prevent_protected()
                     continue
-                else:
-                    try:
-                        self.__error_callback(analyze_error)
-                    except Exception:
-                        pass
-                    finally:
-                        return False, None
+                try:
+                    self.__error_callback(analyze_error)
+                except Exception:
+                    pass
+                return False, None
             return True, result
     
     def __download_book_info(self) -> Tuple[Book, List[str]]:
@@ -356,7 +347,8 @@ class DownloadManager(object):
             if re.match(self.__engine.chapter_url_pattern, urlparse(chapter_url).path):
                 chapter_url_list.append(chapter_url)
         # 使用本地副本将已下载的章节补充入书籍中
-        book = self.__book_shelf.complete_book(book)
+        if not Settings.FORCE_RELOAD:
+            book = self.__book_shelf.complete_book(book)
         # 触发书籍信息获取回调函数并返回值
         try:
             self.__book_info_callback(
@@ -369,10 +361,10 @@ class DownloadManager(object):
         return book, chapter_url_list
     
     def __download_chapters_content(
-        self, book: Book, chapter_url_list: List[str], multi_thread: bool = True
+        self, book: Book, chapter_url_list: List[str]
     ) -> Book:
         # 如果指定多线程且该网站的引擎允许多线程, 则将使用多线程进行下载
-        if multi_thread and self.__engine.multi_thread:
+        if Settings.MULTI_THREAD and self.__engine.multi_thread:
             # 使用多线程下载章节
             with ThreadPoolExecutor(thread_name_prefix=f"书籍《{book.name}》下载线程") as executor:
                 future_to_url = {
@@ -408,7 +400,10 @@ class DownloadManager(object):
         chapter.book_name = book.name
         # 检查书籍的内容是否过短
         if chapter.word_count <= 500:
-            self.__error_callback(Exception(f"章节内容过短: {chapter.text[:20]}..."))
+            try:
+                self.__error_callback(Exception(f"章节内容过短: {chapter.text[:20]}..."))
+            except Exception:
+                pass
         # 向书籍中加入章节并回调章节信息
         with self.__thread_lock:
             book.append(chapter)

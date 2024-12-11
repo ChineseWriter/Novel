@@ -25,22 +25,12 @@ from .tools import mkdir, str_hash, SQLManager
 # 防止 jieba 库输出调试信息到控制台中
 jieba.setLogLevel(logging.INFO)
 
-# 提取必要的设置作为模块的全局设置
-_DATA_DIR = Settings.DATA_DIR
-_BOOKS_DIR = Settings.BOOKS_DIR
-_BOOKS_DB_PATH = Settings.BOOKS_DB_PATH
-# 尝试创建所有需要的文件夹
-REQUIRED_DIRS = [_DATA_DIR, _BOOKS_DIR]
-[mkdir(i) for i in REQUIRED_DIRS]
-
 
 class BookShelf(object):
     BOOKS = "Books"
     CHAPTERS = "Chapters"
     SOURCES = "Sources"
     TOKENS = "Tokens"
-    
-    DB_PATH: str = os.path.join(_BOOKS_DIR, "bookshelf.db")
     
     SELECT_TABLE = "SELECT name FROM sqlite_master WHERE type = 'table'"
     SELECT_SOURCE = "SELECT SOURCE FROM SOURCES WHERE BOOK_HASH=?"
@@ -85,7 +75,11 @@ class BookShelf(object):
     }
     
     def __init__(self):
-        self.__sql_manager = SQLManager(_BOOKS_DB_PATH)
+        # 尝试创建所有需要的文件夹
+        mkdir(Settings.DATA_DIR)
+        mkdir(Settings.BOOKS_DIR)
+        self.DB_PATH: str = os.path.join(Settings.BOOKS_DIR, "bookshelf.db")
+        self.__sql_manager = SQLManager(Settings.BOOKS_DB_PATH, False)
         self.__create_tables()
     
     def __create_tables(self) -> None:

@@ -28,9 +28,11 @@ def str_hash(text: str) -> bytes:
 
 
 class SQLManager(object):
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, check_same_thread: bool = True):
         self.__db_path = db_path
-        self.__connection: sqlite3.Connection = sqlite3.connect(self.__db_path)
+        self.__connection: sqlite3.Connection = sqlite3.connect(
+            self.__db_path, check_same_thread=check_same_thread
+        )
         self.__cursor = None
         self.__lock = Lock()
     
