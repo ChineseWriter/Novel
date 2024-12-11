@@ -3,8 +3,10 @@
 # @FileName: bookshelf.py
 # @Time: 25/11/2024 17:38
 # @Author: Amundsen Severus Rubeus Bjaaland
+"""书架模块, 用于管理下载过的书籍和预载入信息的书籍"""
 
 
+# 导入标准库
 import os
 import json
 import logging
@@ -12,13 +14,15 @@ import sqlite3
 from functools import reduce
 from typing import Iterable, Iterator, List, Tuple
 
+# 导入第三方库
+import jieba
+
+# 导入自定义库
 from .settings import Settings
 from .books import Book, Chapter
 from .tools import mkdir, str_hash, SQLManager
 
-import jieba
-
-
+# 防止 jieba 库输出调试信息到控制台中
 jieba.setLogLevel(logging.INFO)
 
 # 提取必要的设置作为模块的全局设置
