@@ -418,7 +418,3 @@ class DownloadManager(object):
             except Exception:
                 pass
         return True
-
-
-if __name__ == "__main__":
-    VERSION = "1.0.0"

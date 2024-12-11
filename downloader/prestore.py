@@ -151,9 +151,3 @@ class PreStore(object):
                 time.sleep(5)
             else:
                 next_url = self.__deal_url(response)
-        
-        
-
-
-if __name__ == "__main__":
-    pass

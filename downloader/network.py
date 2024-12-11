@@ -131,7 +131,3 @@ class Network(object):
             return result.text
         else:
             return ""
-
-
-if __name__ == "__main__":
-    VERSION = "0.1.0"

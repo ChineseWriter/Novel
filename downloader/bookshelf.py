@@ -197,7 +197,3 @@ class BookShelf(object):
                     )
                 )
         return book
-
-
-if __name__ == "__main__":
-    VERSION = "0.0.1"

@@ -56,7 +56,3 @@ class Logger(object):
 	@property
 	def stream_handler(self):
 		return self.__stream_handler
-
-
-if __name__ == "__main__":
-	VERSION = "0.1.0"

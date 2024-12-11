@@ -318,7 +318,3 @@ ENGINE_LIST = (
     Engine2(),
     Engine3(),
 )
-
-
-if __name__ == "__main__":
-    VERSION = "0.1.0"
