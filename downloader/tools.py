@@ -30,25 +30,23 @@ def str_hash(text: str) -> bytes:
 class SQLManager(object):
     def __init__(self, db_path: str):
         self.__db_path = db_path
-        self.__connection = None
+        self.__connection: sqlite3.Connection = sqlite3.connect(self.__db_path)
         self.__cursor = None
         self.__lock = Lock()
     
     def __enter__(self):
         self.__lock.acquire()
-        assert isinstance(self.__connection, type(None))
         assert isinstance(self.__cursor, type(None))
-        self.__connection = sqlite3.connect(self.__db_path)
         self.__cursor = self.__connection.cursor()
         return self.__cursor
     
     def __exit__(self, exc_type, exc_value, exc_tb):
         assert isinstance(self.__cursor, sqlite3.Cursor)
-        assert isinstance(self.__connection, sqlite3.Connection)
         self.__cursor.close()
         self.__connection.commit()
-        self.__connection.close()
         self.__cursor = None
-        self.__connection = None
         self.__lock.release()
         return None
+    
+    def __del__(self):
+        self.__connection.close()
