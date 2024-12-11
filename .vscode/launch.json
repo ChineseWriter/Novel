@@ -69,7 +69,15 @@
 			"request": "launch",
 			"program": "${workspaceFolder}/downloader.py",
 			"console": "integratedTerminal",
-			"args": ["download_novels", "--multi_thread=0"]
+			"args": ["download_novels"]
+		},
+		{
+			"name": "通过书名查找书籍",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${workspaceFolder}/downloader.py",
+			"console": "integratedTerminal",
+			"args": ["search_books_by_name", "校花"]
 		},
 	]
 }

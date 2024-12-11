@@ -35,7 +35,6 @@ class Pipeline(object):
         method = downloader.Book.SaveMethod.transform(save_method)
         # 获取网站引擎管理类
         manager = downloader.WebManager()
-        manager.append_default_engine()
         
         # 下载指定的书籍
         book = manager.download(url, True if multi_thread else False)
@@ -52,7 +51,6 @@ class Pipeline(object):
         multi_thread_flag = True if multi_thread else False
         # 获取网站引擎管理类
         manager = downloader.WebManager()
-        manager.append_default_engine()
         
         if not os.path.exists(BOOK_URLS_FILE):
             print(f"未找到书籍 URL 配置文件({BOOK_URLS_FILE}), 将自动创建. ")
@@ -84,7 +82,6 @@ class Pipeline(object):
         #             for one_url in urls
         #         }
         #         as_completed(future_to_url)
-            
         #     return None
         
         for one_url in urls:
@@ -94,6 +91,12 @@ class Pipeline(object):
             if book != downloader.EMPTY_BOOK:
                 book.save(method)
         return None
+    
+    def search_books_by_name(self, name: str):
+        bookshelf = downloader.BookShelf()
+        books = bookshelf.search_books_by_name(name)
+        for one_book, sources in books:
+            print(repr(one_book))
 
 
 if __name__ == "__main__":

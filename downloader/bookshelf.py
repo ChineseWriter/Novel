@@ -9,13 +9,12 @@ import os
 import json
 import logging
 import sqlite3
-from threading import Lock
 from functools import reduce
 from typing import Iterable, Iterator, List, Tuple
 
 from .settings import Settings
 from .books import Book, Chapter
-from .tools import mkdir, str_hash
+from .tools import mkdir, str_hash, SQLManager
 
 import jieba
 
@@ -31,33 +30,6 @@ REQUIRED_DIRS = [_DATA_DIR, _BOOKS_DIR]
 [mkdir(i) for i in REQUIRED_DIRS]
 
 
-class SQLManager(object):
-    def __init__(self):
-        self.__db_path = _BOOKS_DB_PATH
-        self.__connection = None
-        self.__cursor = None
-        self.__lock = Lock()
-    
-    def __enter__(self):
-        self.__lock.acquire()
-        assert isinstance(self.__connection, type(None))
-        assert isinstance(self.__cursor, type(None))
-        self.__connection = sqlite3.connect(self.__db_path)
-        self.__cursor = self.__connection.cursor()
-        return self.__cursor
-    
-    def __exit__(self, exc_type, exc_value, exc_tb):
-        assert isinstance(self.__cursor, sqlite3.Cursor)
-        assert isinstance(self.__connection, sqlite3.Connection)
-        self.__cursor.close()
-        self.__connection.commit()
-        self.__connection.close()
-        self.__cursor = None
-        self.__connection = None
-        self.__lock.release()
-        return None
-
-
 class BookShelf(object):
     BOOKS = "Books"
     CHAPTERS = "Chapters"
@@ -67,6 +39,7 @@ class BookShelf(object):
     DB_PATH: str = os.path.join(_BOOKS_DIR, "bookshelf.db")
     
     SELECT_TABLE = "SELECT name FROM sqlite_master WHERE type = 'table'"
+    SELECT_SOURCE = "SELECT SOURCE FROM SOURCES WHERE BOOK_HASH=?"
     CREATE_TABLES = {
         CHAPTERS: """CREATE TABLE CHAPTERS(
         HASH              INTEGER NOT NULL PRIMARY KEY,
@@ -108,7 +81,7 @@ class BookShelf(object):
     }
     
     def __init__(self):
-        self.__sql_manager = SQLManager()
+        self.__sql_manager = SQLManager(_BOOKS_DB_PATH)
         self.__create_tables()
     
     def __create_tables(self) -> None:
@@ -155,7 +128,7 @@ class BookShelf(object):
                           [token_hash, book_hash, token_hash, book_hash]
                     )
     
-    def search_books_by_name(self, name: str) -> Iterator[Book]:
+    def search_books_by_name(self, name: str) -> Iterator[Tuple[Book, List[str]]]:
         with self.__sql_manager as cursor:
             token_list = jieba.lcut_for_search(name)
             buffer: List[set] = []
@@ -170,15 +143,19 @@ class BookShelf(object):
             for one_book_hash in book_hash_list:
                 result = cursor.execute("SELECT * FROM BOOKS WHERE HASH=?", [one_book_hash])
                 for i in self.__transform_books(result):
-                    yield i
+                    cursor.execute(self.SELECT_SOURCE, [hash(i)])
+                    book_sources = [i[0] for i in cursor.fetchall()]
+                    yield (i, book_sources)
     
-    def search_books_by_author(self, author: str) -> Iterator[Book]:
+    def search_books_by_author(self, author: str) -> Iterator[Tuple[Book, List[str]]]:
         with self.__sql_manager as cursor:
             result = cursor.execute("SELECT * FROM BOOKS WHERE AUTHOR=?", [author])
             for i in self.__transform_books(result):
-                yield i
+                cursor.execute(self.SELECT_SOURCE, [hash(i)])
+                book_sources = [i[0] for i in cursor.fetchall()]
+                yield (i, book_sources)
     
-    def search_books_by_web(self, web_hash: int) -> Iterator[Book]:
+    def search_books_by_web(self, web_hash: int) -> Iterator[Tuple[Book, List[str]]]:
         with self.__sql_manager as cursor:
             result = cursor.execute(
                 """SELECT * FROM BOOKS WHERE HASH IN 
@@ -186,7 +163,9 @@ class BookShelf(object):
                 [web_hash]
             )
             for i in self.__transform_books(result):
-                yield i
+                cursor.execute(self.SELECT_SOURCE, [hash(i)])
+                book_sources = [i[0] for i in cursor.fetchall()]
+                yield (i, book_sources)
     
     def add_chapters(self, chapters: Iterable[Tuple[Chapter, Book]]):
         with self.__sql_manager as cursor:

@@ -400,14 +400,17 @@ class Book(object):
         :param chapter: 章节对象
         :type chapter: Chapter
         """
+        # 检查传入的参数是否正确
+        assert isinstance(chapter, Chapter)
+        # if not isinstance(chapter, Chapter):
+        #     return False
         # 确定书籍的名称匹配且章节还未加入该书籍的章节列表
         if ((chapter.book_name != self.name) or
             (chapter.index in self.index_list)):
             return False
         # 添加章节进入章节列表, 并按照章节 index 排序
         self.__chapter_list.append(chapter)
-        self.__chapter_list = \
-            sorted(
+        self.__chapter_list = sorted(
                 self.__chapter_list, key=lambda x: x.index
             )
         return True
@@ -418,6 +421,9 @@ class Book(object):
         :param method: 书籍的保存方式
         :type method: SaveMethod
         """
+        # 确认传入的参数是否正确
+        assert isinstance(method, self.SaveMethod)
+        # 保存书籍
         return Saver(self, method).save()
     
     @property
@@ -492,6 +498,9 @@ class Saver(object):
         :param method: 保存方式
         :type method: Book.SaveMethod
         """
+        # 检查传入的参数是否正确
+        assert isinstance(book, Book)
+        assert isinstance(method, Book.SaveMethod)
         # 初始化数据
         self.__book = book
         self.__method = method
@@ -509,8 +518,6 @@ class Saver(object):
                 return self.__epub_file()
             case Book.SaveMethod.PDF:
                 # TODO 完成该分支方法，使保存方式支持PDF文件
-                return 0
-            case _:
                 return 0
     
     def __txt_file(self):
@@ -564,7 +571,7 @@ class Saver(object):
             f'<img src="image.jpg" alt="Cover Image" ' \
             f'style="width:100%;height:100%;object-fit:cover;"/>'
             f'<h1>{self.__book.name}</h1>'
-            f'<p>{self.__book.desc}</p>'
+            f'<p>{self.__book.desc.replace("\n", "</p><p>")}</p>'
         )
         book.add_item(intro_e)
         

@@ -138,6 +138,9 @@ class Engine3(BookWeb):
     prestore_book_urls = False
     multi_thread = False
     
+    class ChapterListProtectedError(Exception):
+        pass
+    
     CODE = [[58344, 58715], [58345, 58716]]
     CHARSET = [
         [
@@ -206,10 +209,14 @@ class Engine3(BookWeb):
     
     def __get_response(self, url: str, cookie: str):
         try:
-            response = Network.get(url, cookie=cookie)
+            response = Network.get(
+                url, cookie=cookie,
+                User_Agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) " \
+                    "Gecko/20100101 Firefox/133.0"
+            )
             n = response.bs \
                 .find("div", attrs={"class": "muye-reader-content noselect"}).text
-        except Exception:
+        except Exception as e:
             return None
         else:
             if len(n) <= 200:
@@ -255,6 +262,7 @@ class Engine3(BookWeb):
             .find_all("span")[0].text
         state = Book.State.SERIALIZING if state_text == "连载中" else Book.State.END
         desc = response.bs.find("div", attrs={"class": "page-abstract-content"}).text
+        response.save_debug_file()
         image_url = response.bs.find_all("script", attrs={"type": "application/ld+json"})[1]
         image_url = json.loads(image_url.text)
         image_url = image_url.get("images")[0]
@@ -263,6 +271,9 @@ class Engine3(BookWeb):
         return Book(name, author, response.response.url, state, desc, image, fq_id=fq_id)
     
     def get_chapter_url(self, response: Network) -> List[str]:
+        response.save_debug_file()
+        if response.bs.find("div", attrs={"class": "page-directory-more"}):
+            raise self.ChapterListProtectedError
         volume_list = response.bs.find("div", attrs={"class": "page-directory-content"}) \
             .find_all("div", attrs={"class": "chapter"})
         url_list = []
@@ -273,7 +284,6 @@ class Engine3(BookWeb):
     
     def get_chapter(self, response: Network) -> Chapter:
         chapter_response = self.__get_chapter_response(response.response.url)
-        chapter_response = Network(chapter_response)
         name = chapter_response.bs \
             .find("h1", attrs={"class": "muye-reader-title"}).text.split(" ")[-1]
         text_list = chapter_response.bs \
@@ -295,10 +305,12 @@ class Engine3(BookWeb):
         #     return True
         # if isinstance(network_error, socket.gaierror):
         #     return True
+        if isinstance(analyze_error, self.ChapterListProtectedError):
+            return True
         return super().is_protected(response, network_error, analyze_error)
     
     def prevent_protected(self, *param):
-        time.sleep(5.0)
+        time.sleep(10.0)
 
 
 ENGINE_LIST = (
