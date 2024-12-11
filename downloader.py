@@ -16,16 +16,28 @@ import fire
 import downloader
 
 
+def changable_args():
+    args = dir(downloader.Settings)
+    args.remove("LOG_DIR")
+    args.remove("URLS_DIR")
+    args.remove("BOOKS_DIR")
+    args.remove("BOOKS_CACHE_DIR")
+    args.remove("BOOKS_DB_PATH")
+    args.remove("BOOKS_STORAGE_DIR")
+    return args
+
+
 class Pipeline(object):
     SAVE_METHOD = downloader.Book.SaveMethod
     
     def __init__(self, **other_settings):
+        settings_args = changable_args()
         for key, item in other_settings.items():
             if item == "true":
                 item = True
             if item == "false":
                 item = False
-            if key.upper() in dir(downloader.Settings):
+            if key.upper() in settings_args:
                 setattr(downloader.Settings, key.upper(), item)
             else:
                 print(f"存在未知的全局设置: {key}")
