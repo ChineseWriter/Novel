@@ -23,7 +23,7 @@
 | 8 | tqdm | 用于默认回调函数, 指示一些进度的执行情况 |
 | 9 | fire | 用于获取命令行数据 |
 
-### 使用
+### 在命令行中使用
 目前该程序仅支持通过[命令提示符](https://baike.baidu.com/item/%E5%91%BD%E4%BB%A4%E6%8F%90%E7%A4%BA%E7%AC%A6/998728)输入命令使用, 以后可能会支持通过在命令提示符中的 TUI 使用, 以及通过 GUI 使用.
 
 目前该程序支持的操作都在 downloader.py 文件中, 要使用该程序请输入`python downloader.py`, 在这之后跟进输入命令即可.
@@ -49,11 +49,18 @@
 | 5 | log_file_name | 日志文件的文件名 | "logs" |
 | 6 | log_format | 日志的格式 | "[%(asctime)s]{%(levelname)s} %(name)s (%(filename)s - %(lineno)s):\n\t%(message)s" |
 
+## 支持的网站列表
+目前小说下载器可以从以下网站下载小说:
+| 计数 | 网站名 | 网站网址 |
+| :-: | :-: | :-: |
+| 1 | 笔趣阁 | www.biquge.hk, www.biequgei.com |
+| 2 | 番茄小说 | www.fanqienovel.com |
+
 ## 项目概述
 项目的概述请移步[概述](/docs/summary.md).
 
-## 重用内部 downloader 包
-该部分文档暂时未编写.
-
 ## 项目进度
 所有项目相关的进度请移步[计划](/docs/plans.md).
+
+## 重用内部 downloader 包
+该部分文档暂时未编写.
