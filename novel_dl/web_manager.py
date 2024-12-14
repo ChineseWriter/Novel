@@ -254,8 +254,6 @@ class DownloadManager(object):
         self.__chapter_info_callback = try_callback(chapter_info_callback)
         self.__error_callback = try_callback(error_callback)
         self.__stop_callback = try_callback(stop_callback)
-        # 设置章节多线程下载时需要用到的同步锁
-        self.__thread_lock = Lock()
         # 为了防止出现循环导入错误，这里将其放在函数内进行导入
         from .bookshelf import BookShelf
         # 启用书架, 以保存下载过的数据
