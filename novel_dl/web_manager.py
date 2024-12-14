@@ -22,6 +22,7 @@ from tqdm import tqdm
 #导入自定义库
 from .network import Network
 from .settings import Settings
+from .tools import try_callback
 from .books import Book, Chapter, EMPTY_BOOK
 
 
@@ -255,10 +256,10 @@ class DownloadManager(object):
         self.__url = url
         self.__engine = engine
         # 设置所有需要用到的回调函数
-        self.__book_info_callback = book_info_callback
-        self.__chapter_info_callback = chapter_info_callback
-        self.__error_callback = error_callback
-        self.__stop_callback = stop_callback
+        self.__book_info_callback = try_callback(book_info_callback)
+        self.__chapter_info_callback = try_callback(chapter_info_callback)
+        self.__error_callback = try_callback(error_callback)
+        self.__stop_callback = try_callback(stop_callback)
         # 设置章节多线程下载时需要用到的同步锁
         self.__thread_lock = Lock()
         # 为了防止出现循环导入错误，这里将其放在函数内进行导入
@@ -280,10 +281,7 @@ class DownloadManager(object):
         # 下载章节内容
         book = self.__download_chapters_content(book_obj, chapter_list)
         # 调用停止下载回调函数, 防止出现进度条等组件未正确退出的情况
-        try:
-            self.__stop_callback()
-        except Exception:
-            pass
+        self.__stop_callback()
         # 返回整本书籍
         return book
     
@@ -307,10 +305,7 @@ class DownloadManager(object):
                 if engine.is_protected(None, network_error, None):
                     engine.prevent_protected()
                     continue
-                try:
-                    self.__error_callback(network_error)
-                except Exception:
-                    pass
+                self.__error_callback(network_error)
                 return False, None
             # 尝试使用给定的函数解析内容
             try:
@@ -319,10 +314,7 @@ class DownloadManager(object):
                 if engine.is_protected(network_obj, None, analyze_error):
                     engine.prevent_protected()
                     continue
-                try:
-                    self.__error_callback(analyze_error)
-                except Exception:
-                    pass
+                self.__error_callback(analyze_error)
                 return False, None
             return True, result
     
@@ -350,12 +342,9 @@ class DownloadManager(object):
         if not Settings.FORCE_RELOAD:
             book = self.__book_shelf.complete_book(book)
         # 触发书籍信息获取回调函数并返回值
-        try:
-            self.__book_info_callback(
-                book, len(chapter_url_list), len(chapter_url_list) - len(book)
-            )
-        except Exception:
-            pass
+        self.__book_info_callback(
+            book, len(chapter_url_list), len(chapter_url_list) - len(book)
+        )
         self.__book_shelf.add_books([(book, hash(self.__engine))], Settings.FORCE_RELOAD)
         # 返回最终的下载结果
         return book, chapter_url_list
@@ -400,16 +389,10 @@ class DownloadManager(object):
         chapter.book_name = book.name
         # 检查书籍的内容是否过短
         if chapter.word_count <= 500:
-            try:
-                self.__error_callback(Exception(f"章节内容过短: {chapter.text[:20]}..."))
-            except Exception:
-                pass
+            self.__error_callback(Exception(f"章节内容过短: {chapter.text[:20]}..."))
         # 向书籍中加入章节并回调章节信息
         with self.__thread_lock:
             book.append(chapter)
             self.__book_shelf.add_chapters([(chapter, book)], Settings.FORCE_RELOAD)
-            try:
-                self.__chapter_info_callback(chapter)
-            except Exception:
-                pass
+            self.__chapter_info_callback(chapter)
         return True

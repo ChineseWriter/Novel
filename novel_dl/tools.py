@@ -9,6 +9,7 @@
 import os
 import hashlib
 import sqlite3
+from typing import Callable
 from threading import Lock
 
 
@@ -25,6 +26,16 @@ def str_hash(text: str) -> bytes:
 	sha256_hash = hashlib.sha256(text.encode())
 	hash_value = sha256_hash.hexdigest()
 	return bytes.fromhex(hash_value)
+
+
+def try_callback(callback: Callable):
+    def wrapper(*args, **kwargs):
+        try:
+            result = callback(*args, **kwargs)
+        except Exception:
+            result = None
+        return result
+    return wrapper
 
 
 class SQLManager(object):

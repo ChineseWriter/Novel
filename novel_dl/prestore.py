@@ -17,7 +17,7 @@ from .books import Book
 from .network import Network
 from .settings import Settings
 from .bookshelf import BookShelf
-from .tools import SQLManager, str_hash, mkdir
+from .tools import SQLManager, str_hash, mkdir, try_callback
 from .web_manager import DownloadManager, BookWeb
 
 
@@ -42,7 +42,7 @@ class PreStore(object):
         mkdir(Settings.DATA_DIR)
         mkdir(Settings.URLS_DIR)
         self.__engine = engine
-        self.__book_info_callback = book_info_callback
+        self.__book_info_callback = try_callback(book_info_callback)
         db_path = os.path.join(Settings.URLS_DIR, str(hash(engine)))
         self.__sql_manager = SQLManager(db_path)
         self.__create_table()
