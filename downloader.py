@@ -3,6 +3,7 @@
 # @FileName: main.py
 # @Time: 23/02/2024 19:31
 # @Author: Amundsen Severus Rubeus Bjaaland
+"""程序主要功能的入口文件, 用于连接主要支持库与命令行."""
 
 
 # 导入标准库
@@ -17,27 +18,36 @@ import novel_dl
 
 
 def changable_args():
+    """指示可以更改的设置文件
+    列出 Settings 的所有类变量并排除其中不能更改的类变量
+    """
+    # 列出 Settings 的所有类变量
     args = dir(novel_dl.Settings)
+    # 排除其中不能更改的类变量
     args.remove("LOG_DIR")
     args.remove("URLS_DIR")
     args.remove("BOOKS_DIR")
     args.remove("BOOKS_CACHE_DIR")
     args.remove("BOOKS_DB_PATH")
     args.remove("BOOKS_STORAGE_DIR")
+    # 返回最终结果
     return args
 
 
 class Pipeline(object):
-    SAVE_METHOD = novel_dl.Book.SaveMethod
-    
     def __init__(self, **other_settings):
+        # 获取可以更改的设置的设置名称
         settings_args = changable_args()
+        # 将传入的设置更新
         for key, item in other_settings.items():
+            # 确保设置有正确的类型
             if (item == "true") or (item == "True"):
                 item = True
             if (item == "false") or (item == "False"):
                 item = False
+            # 更新设置
             if key.upper() in settings_args:
+                # TODO 添加基本的检查, 防止非法设置传入导致程序崩溃
                 setattr(novel_dl.Settings, key.upper(), item)
             else:
                 print(f"存在未知的全局设置: {key}")
@@ -55,12 +65,12 @@ class Pipeline(object):
         method = novel_dl.Book.SaveMethod.transform(save_method)
         # 获取网站引擎管理类
         manager = novel_dl.WebManager()
-        
         # 下载指定的书籍
         book = manager.download(url)
         # 保存书籍后退出程序
         if book != novel_dl.EMPTY_BOOK:
             book.save(method)
+        # 退出程序
         return None
     
     def download_novels(self, save_method: int = 1):
@@ -69,45 +79,20 @@ class Pipeline(object):
         method = novel_dl.Book.SaveMethod.transform(save_method)
         # 获取网站引擎管理类
         manager = novel_dl.WebManager()
-        
+        # 确保书籍网址文件存在, 不存在则自动创建
         if not os.path.exists(BOOK_URLS_FILE):
             print(f"未找到书籍 URL 配置文件({BOOK_URLS_FILE}), 将自动创建. ")
-            with open(BOOK_URLS_FILE, "w", encoding="UTF-8"):
-                pass
+            open(BOOK_URLS_FILE, "w", encoding="UTF-8").close()
             return None
-        
+        # 读取书籍网址文件, 并按行将其转换为列表
         with open(BOOK_URLS_FILE, "r", encoding="UTF-8") as book_urls_file:
             urls = [i.strip("\n") for i in book_urls_file.readlines()]
-        
-        # TODO 修复部分网站不支持多线程下载的问题
-        # if multi_thread_flag:
-        #     from concurrent.futures import ThreadPoolExecutor, as_completed
-            
-        #     def download(one_url: str, multi_thread_flag: bool) -> bool:
-        #         # 下载指定的书籍
-        #         book = manager.download(one_url, multi_thread_flag)
-        #         # 保存书籍后退出程序
-        #         if book != downloader.EMPTY_BOOK:
-        #             book.save(method)
-        #             return True
-        #         return False
-            
-        #     with ThreadPoolExecutor(5, thread_name_prefix="书籍下载线程") as executor:
-        #         future_to_url = {
-        #             executor.submit(
-        #                 download, one_url, multi_thread_flag
-        #             ): one_url
-        #             for one_url in urls
-        #         }
-        #         as_completed(future_to_url)
-        #     return None
-        
         for one_url in urls:
-            # 下载指定的书籍
+            # 下载指定的书籍并保存
             book = manager.download(one_url)
-            # 保存书籍后退出程序
             if book != novel_dl.EMPTY_BOOK:
                 book.save(method)
+        # 退出程序
         return None
     
     def search_books_by_name(self, name: str):
@@ -118,10 +103,13 @@ class Pipeline(object):
 
 
 if __name__ == "__main__":
-    # 添加工作目录
+    # 添加工作目录, 工作目录为该文件所在目录
     sys.path.append(os.getcwd())
+    # 进入程序
     if len(sys.argv) == 1:
         # TODO 撰写可用的 GUI 界面
         print("该程序暂时不支持默认运行(GUI 界面)哦!")
     else:
         fire.Fire(Pipeline)
+    # 程序正常退出
+    sys.exit(0)
