@@ -62,7 +62,7 @@ class BookShelf(object):
     SELECT_TABLES = {
         CHAPTERS: "SELECT * FROM CHAPTERS WHERE HASH=?",
         BOOKS: "SELECT * FROM BOOKS WHERE HASH=?",
-        SOURCES: "SELECT * FROM SOURCE WHERE WEB_HASH=? AND BOOK_HASH=?",
+        SOURCES: "SELECT * FROM SOURCES WHERE WEB_HASH=? AND BOOK_HASH=?",
         TOKENS: "SELECT * FROM TOKENS WHERE HASH=? AND BOOK_HASH=?"
     }
     INSERT_TABLES = {
@@ -79,7 +79,7 @@ class BookShelf(object):
         SOURCES: """UPDATE SOURCES SET
               WEB_HASH=?,BOOK_HASH=?,SOURCE=? WHERE WEB_HASH=? AND BOOK_HASH=?""",
         TOKENS: """UPDATE TOKENS SET
-              HASH=?,BOOK_HASH=? WHERE HASH=?,BOOK_HASH=?"""
+              HASH=?,BOOK_HASH=? WHERE HASH=? AND BOOK_HASH=?"""
     }
     
     def __init__(self):
@@ -137,8 +137,8 @@ class BookShelf(object):
                 force_reload
             )
             self.__add(
-                self.SOURCES, (book_hash,),
-                (web_hash, book_hash, one_book.source, web_hash),
+                self.SOURCES, (web_hash, book_hash),
+                (web_hash, book_hash, one_book.source),
                 force_reload
             )
             token_list = jieba.lcut_for_search(one_book.name)
