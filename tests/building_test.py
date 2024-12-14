@@ -14,11 +14,11 @@ work_folder = os.path.abspath(
 )
 sys.path.append(work_folder)
 
-import downloader
+import novel_dl
 
 
 if __name__ == "__main__":
-    manager = downloader.Manager()
+    manager = novel_dl.Manager()
     chapter = manager.create_chapter(
         "测试书籍名", 0, "测试章节名", "https://example.com/", 
         "<p>这是测试内容第一段。</p><p>这是测试内容第二段。</p>"

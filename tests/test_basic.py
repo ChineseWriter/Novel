@@ -5,11 +5,11 @@
 # @Author: Amundsen Severus Rubeus Bjaaland
 
 
-import downloader
+import novel_dl
 
 
 class TestManager:
     def test_manager_duplicate(self):
-        manager_1 = downloader.Manager()
-        manager_2 = downloader.Manager()
+        manager_1 = novel_dl.Manager()
+        manager_2 = novel_dl.Manager()
         assert id(manager_1) == id(manager_2)

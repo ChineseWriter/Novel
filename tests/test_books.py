@@ -7,7 +7,7 @@
 
 import os
 
-from downloader.books import Chapter, Book
+from novel_dl.books import Chapter, Book
 
 
 class TestConstant:

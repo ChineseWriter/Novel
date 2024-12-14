@@ -13,11 +13,11 @@ import sys
 import fire
 
 # 导入自定义库
-import downloader
+import novel_dl
 
 
 def changable_args():
-    args = dir(downloader.Settings)
+    args = dir(novel_dl.Settings)
     args.remove("LOG_DIR")
     args.remove("URLS_DIR")
     args.remove("BOOKS_DIR")
@@ -28,7 +28,7 @@ def changable_args():
 
 
 class Pipeline(object):
-    SAVE_METHOD = downloader.Book.SaveMethod
+    SAVE_METHOD = novel_dl.Book.SaveMethod
     
     def __init__(self, **other_settings):
         settings_args = changable_args()
@@ -38,7 +38,7 @@ class Pipeline(object):
             if (item == "false") or (item == "False"):
                 item = False
             if key.upper() in settings_args:
-                setattr(downloader.Settings, key.upper(), item)
+                setattr(novel_dl.Settings, key.upper(), item)
             else:
                 print(f"存在未知的全局设置: {key}")
                 sys.exit(-1)
@@ -52,23 +52,23 @@ class Pipeline(object):
     
     def download_novel(self, url: str, save_method: int = 1):
         # 将数字表示的保存方式改为保存方式常量
-        method = downloader.Book.SaveMethod.transform(save_method)
+        method = novel_dl.Book.SaveMethod.transform(save_method)
         # 获取网站引擎管理类
-        manager = downloader.WebManager()
+        manager = novel_dl.WebManager()
         
         # 下载指定的书籍
         book = manager.download(url)
         # 保存书籍后退出程序
-        if book != downloader.EMPTY_BOOK:
+        if book != novel_dl.EMPTY_BOOK:
             book.save(method)
         return None
     
     def download_novels(self, save_method: int = 1):
         BOOK_URLS_FILE = "book_urls.txt"
         # 将数字表示的保存方式改为保存方式常量
-        method = downloader.Book.SaveMethod.transform(save_method)
+        method = novel_dl.Book.SaveMethod.transform(save_method)
         # 获取网站引擎管理类
-        manager = downloader.WebManager()
+        manager = novel_dl.WebManager()
         
         if not os.path.exists(BOOK_URLS_FILE):
             print(f"未找到书籍 URL 配置文件({BOOK_URLS_FILE}), 将自动创建. ")
@@ -106,12 +106,12 @@ class Pipeline(object):
             # 下载指定的书籍
             book = manager.download(one_url)
             # 保存书籍后退出程序
-            if book != downloader.EMPTY_BOOK:
+            if book != novel_dl.EMPTY_BOOK:
                 book.save(method)
         return None
     
     def search_books_by_name(self, name: str):
-        bookshelf = downloader.BookShelf()
+        bookshelf = novel_dl.BookShelf()
         books = bookshelf.search_books_by_name(name)
         for one_book, sources in books:
             print(repr(one_book))
