@@ -356,7 +356,7 @@ class DownloadManager(object):
             )
         except Exception:
             pass
-        self.__book_shelf.add_books([(book, hash(self.__engine))])
+        self.__book_shelf.add_books([(book, hash(self.__engine))], Settings.FORCE_RELOAD)
         # 返回最终的下载结果
         return book, chapter_url_list
     
@@ -407,7 +407,7 @@ class DownloadManager(object):
         # 向书籍中加入章节并回调章节信息
         with self.__thread_lock:
             book.append(chapter)
-            self.__book_shelf.add_chapters([(chapter, book)])
+            self.__book_shelf.add_chapters([(chapter, book)], Settings.FORCE_RELOAD)
             try:
                 self.__chapter_info_callback(chapter)
             except Exception:

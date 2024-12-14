@@ -36,42 +36,50 @@ class BookShelf(object):
     SELECT_SOURCE = "SELECT SOURCE FROM SOURCES WHERE BOOK_HASH=?"
     CREATE_TABLES = {
         CHAPTERS: """CREATE TABLE CHAPTERS(
-        HASH              INTEGER NOT NULL PRIMARY KEY,
-        BOOK_HASH         INTEGER NOT NULL,
-        NAME              TEXT    NOT NULL,
-        CHAPTER_INDEX     INTEGER NOT NULL,
-        CONTENT           TEXT    NOT NULL)""",
+            HASH              INTEGER NOT NULL PRIMARY KEY,
+            BOOK_HASH         INTEGER NOT NULL,
+            NAME              TEXT    NOT NULL,
+            CHAPTER_INDEX     INTEGER NOT NULL,
+            CONTENT           TEXT    NOT NULL)""",
         BOOKS: """CREATE TABLE BOOKS(
-        HASH   INTEGER NOT NULL PRIMARY KEY,
-        NAME   TEXT    NOT NULL,
-        AUTHOR TEXT    NOT NULL,
-        STATE  INTEGER NOT NULL,
-        DESC   TEXT    NOT NULL,
-        COVER  BLOB    NOT NULL,
-        OTHER  TEXT    NOT NULL)""",
+            HASH   INTEGER NOT NULL PRIMARY KEY,
+            NAME   TEXT    NOT NULL,
+            AUTHOR TEXT    NOT NULL,
+            STATE  INTEGER NOT NULL,
+            DESC   TEXT    NOT NULL,
+            COVER  BLOB    NOT NULL,
+            OTHER  TEXT    NOT NULL)""",
         SOURCES: """CREATE TABLE SOURCES(
-        WEB_HASH  INTEGER NOT NULL,
-        BOOK_HASH INTEGER NOT NULL,
-        SOURCE    TEXT    NOT NULL UNIQUE,
-        PRIMARY KEY(WEB_HASH,BOOK_HASH))""",
+            WEB_HASH  INTEGER NOT NULL,
+            BOOK_HASH INTEGER NOT NULL,
+            SOURCE    TEXT    NOT NULL UNIQUE,
+            PRIMARY KEY(WEB_HASH,BOOK_HASH))""",
         TOKENS: """CREATE TABLE TOKENS(
-        HASH      BLOB    NOT NULL,
-        BOOK_HASH INTEGER NOT NULL,
-        PRIMARY KEY(HASH,BOOK_HASH))"""
+            HASH      BLOB    NOT NULL,
+            BOOK_HASH INTEGER NOT NULL,
+            PRIMARY KEY(HASH,BOOK_HASH))"""
+    }
+    SELECT_TABLES = {
+        CHAPTERS: "SELECT * FROM CHAPTERS WHERE HASH=?",
+        BOOKS: "SELECT * FROM BOOKS WHERE HASH=?",
+        SOURCES: "SELECT * FROM SOURCE WHERE WEB_HASH=? AND BOOK_HASH=?",
+        TOKENS: "SELECT * FROM TOKENS WHERE HASH=? AND BOOK_HASH=?"
     }
     INSERT_TABLES = {
-        CHAPTERS: """INSERT INTO CHAPTERS (HASH,BOOK_HASH,NAME,CHAPTER_INDEX,CONTENT) 
-        SELECT ?,?,?,?,? WHERE NOT EXISTS 
-        (SELECT * FROM CHAPTERS WHERE HASH=?)""",
-        BOOKS: """INSERT INTO BOOKS (HASH,NAME,AUTHOR,STATE,DESC,COVER,OTHER) 
-        SELECT ?,?,?,?,?,?,? WHERE NOT EXISTS
-        (SELECT * FROM BOOKS WHERE HASH=?)""",
-        SOURCES: """INSERT INTO SOURCES (WEB_HASH,BOOK_HASH,SOURCE) 
-        SELECT ?,?,? WHERE NOT EXISTS
-        (SELECT * FROM SOURCES WHERE WEB_HASH=? AND BOOK_HASH=?)""",
-        TOKENS: """INSERT INTO TOKENS (HASH,BOOK_HASH) 
-        SELECT ?,? WHERE NOT EXISTS
-        (SELECT * FROM TOKENS WHERE HASH=? AND BOOK_HASH=?)"""
+        CHAPTERS: "INSERT INTO CHAPTERS VALUES (?,?,?,?,?)",
+        BOOKS: "INSERT INTO BOOKS VALUES (?,?,?,?,?,?,?)",
+        SOURCES: """INSERT INTO SOURCES VALUES (?,?,?)""",
+        TOKENS: """INSERT INTO TOKENS VALUES (?,?)"""
+    }
+    UPDATE_TABLES = {
+        CHAPTERS: """UPDATE CHAPTERS SET
+              HASH=?,BOOK_HASH=?,NAME=?,CHAPTER_INDEX=?,CONTENT=? WHERE HASH=?""",
+        BOOKS: """UPDATE BOOKS SET
+              HASH=?,NAME=?,AUTHOR=?,STATE=?,DESC=?,COVER=?,OTHER=? WHERE HASH=?""",
+        SOURCES: """UPDATE SOURCES SET
+              WEB_HASH=?,BOOK_HASH=?,SOURCE=? WHERE WEB_HASH=? AND BOOK_HASH=?""",
+        TOKENS: """UPDATE TOKENS SET
+              HASH=?,BOOK_HASH=? WHERE HASH=?,BOOK_HASH=?"""
     }
     
     def __init__(self):
@@ -101,30 +109,45 @@ class BookShelf(object):
                 book.set_other_data(key, item)
             yield book
     
-    def add_books(self, data: Iterable[Tuple[Book, int]]):
+    def __add(
+        self, target: str, select_conditions: tuple,
+        data: tuple, force_reload: bool = False
+    ):
         with self.__sql_manager as cursor:
-            for one_book, web_hash in data:
-                book_hash = hash(one_book)
+            result = cursor.execute(
+                self.SELECT_TABLES[target], select_conditions
+            ).fetchall()
+            if not result:
+                cursor.execute(self.INSERT_TABLES[target], data)
+            if result and force_reload:
                 cursor.execute(
-                    self.INSERT_TABLES[self.BOOKS],
-                    [
-                        book_hash, one_book.name, one_book.author,
-                        one_book.state.value[1], one_book.desc,
-                        one_book.cover_image, json.dumps(one_book.other_data), book_hash
-                    ]
+                    self.UPDATE_TABLES[target], (*data, *select_conditions)
                 )
-                cursor.execute(
-                    self.INSERT_TABLES[self.SOURCES],
-                    [web_hash, book_hash, one_book.source, web_hash, book_hash]
+    
+    def add_books(self, data: Iterable[Tuple[Book, int]], force_reload: bool = False):
+        for one_book, web_hash in data:
+            book_hash = hash(one_book)
+            self.__add(
+                self.BOOKS, (book_hash,),
+                (
+                    book_hash, one_book.name, one_book.author,
+                    one_book.state.value[1], one_book.desc,
+                    one_book.cover_image, json.dumps(one_book.other_data)
+                ),
+                force_reload
+            )
+            self.__add(
+                self.SOURCES, (book_hash,),
+                (web_hash, book_hash, one_book.source, web_hash),
+                force_reload
+            )
+            token_list = jieba.lcut_for_search(one_book.name)
+            for one_token in token_list:
+                token_hash = str_hash(one_token)
+                self.__add(
+                    self.TOKENS, (token_hash, book_hash),
+                    (token_hash, book_hash), force_reload
                 )
-                
-                token_list = jieba.lcut_for_search(one_book.name)
-                for one_token in token_list:
-                    token_hash = str_hash(one_token)
-                    cursor.execute(
-                        self.INSERT_TABLES[self.TOKENS],
-                          [token_hash, book_hash, token_hash, book_hash]
-                    )
     
     def search_books_by_name(self, name: str) -> Iterator[Tuple[Book, List[str]]]:
         with self.__sql_manager as cursor:
@@ -165,19 +188,19 @@ class BookShelf(object):
                 book_sources = [i[0] for i in cursor.fetchall()]
                 yield (i, book_sources)
     
-    def add_chapters(self, chapters: Iterable[Tuple[Chapter, Book]]):
-        with self.__sql_manager as cursor:
-            for one_chapter, one_book in chapters:
-                if one_book.name != one_chapter.book_name:
-                    continue
-                cursor.execute(
-                    self.INSERT_TABLES[self.CHAPTERS],
-                    [
-                        hash(one_chapter), hash(one_book), 
-                        one_chapter.name, one_chapter.index, 
-                        "\n\t".join(one_chapter.content), hash(one_chapter)
-                    ]
-                )
+    def add_chapters(self, chapters: Iterable[Tuple[Chapter, Book]], force_reload: bool = False):
+        for one_chapter, one_book in chapters:
+            if one_book.name != one_chapter.book_name:
+                continue
+            self.__add(
+                self.CHAPTERS, (hash(one_chapter),),
+                (
+                    hash(one_chapter), hash(one_book), 
+                    one_chapter.name, one_chapter.index, 
+                    "\n\t".join(one_chapter.content)
+                ),
+                force_reload
+            )
     
     def complete_book(self, book: Book) -> Book:
         with self.__sql_manager as cursor:
