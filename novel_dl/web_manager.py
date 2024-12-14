@@ -96,7 +96,7 @@ class BookWeb(metaclass=ABCMeta):
     # 网站可能的网址列表，注意应有两个"."，即分为三节
     domains: List[str] = ["www.example.com",]
     # 引擎是否可用
-    workable: bool = True  # TODO 使该参数起作用
+    workable: bool = True
     # 网站书籍 URL 的固定模式
     book_url_pattern: str = r"/book/\d+/"
     # 网站章节 URL 的固定模式
