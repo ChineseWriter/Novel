@@ -12,6 +12,7 @@ import io
 import copy
 import hashlib
 from enum import Enum
+from threading import Lock
 from typing import List, Tuple, Any, Iterable
 
 # 导入第三方库
@@ -345,6 +346,8 @@ class Book(object):
         self.__other_data = other_data
         # 初始化书籍的章节列表
         self.__chapter_list: List[Chapter] = []
+        # 为了适应多线程时使用该对象, 特别是添加章节时, 需要在此设置线程锁保证数据安全
+        self.__lock = Lock()
     
     def __len__(self):
         return len(self.__chapter_list)
@@ -373,15 +376,18 @@ class Book(object):
         """
         # 检查传入的参数是否正确
         assert isinstance(chapter, Chapter)
+        # TODO 更新 log 模块后应使用以下的代码
         # if not isinstance(chapter, Chapter):
         #     return False
-        # 确定书籍的名称匹配且章节还未加入该书籍的章节列表
-        if ((chapter.book_name != self.name) or
-            (chapter.index in self.index_list)):
-            return False
-        # 添加章节进入章节列表, 并按照章节 index 排序
-        self.__chapter_list.append(chapter)
-        self.__chapter_list = sorted(
+        # 获取线程锁以确保线程安全
+        with self.__lock:
+            # 确定书籍的名称匹配且章节还未加入该书籍的章节列表
+            if ((chapter.book_name != self.name) or
+                (chapter.index in self.index_list)):
+                return False
+            # 添加章节进入章节列表, 并按照章节 index 排序
+            self.__chapter_list.append(chapter)
+            self.__chapter_list = sorted(
                 self.__chapter_list, key=lambda x: x.index
             )
         return True

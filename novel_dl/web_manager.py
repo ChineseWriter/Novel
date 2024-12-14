@@ -26,10 +26,6 @@ from .tools import try_callback
 from .books import Book, Chapter, EMPTY_BOOK
 
 
-# 书籍下载同步锁, 用于默认的回调函数, 确保输出正常
-TLOCK = Lock()
-
-
 def default_callback():
     """生成默认的回调函数, 用于指示书籍下载情况和进度"""
     # 创建几个函数需要共用的用于保存下载进度的变量
@@ -38,42 +34,41 @@ def default_callback():
     def book_info_callback(book: Book, all_chapters: int, need_chapters: int):
         """指示书籍基本信息的回调函数, 同时创建一个进度条"""
         nonlocal bar
-        with TLOCK:
-            if need_chapters == 0:
-                print(
-                    f"已下载过书籍, 将采用本地缓存, 以下是它的基本信息:\n\t书籍名: 《{book.name}》\n" \
-                    f"\t作者名: {book.author}\n\t状态: {book.state.value[0]}\n" \
-                    f"\t章节数: {all_chapters}\n\t简介: {book.desc.replace('\n', '\n\t')}"
-                )
-                return None
-            # 创建进度条, 并设置总长度和书籍名称
-            bar = tqdm(total=need_chapters)
-            bar.set_description(f"《{book.name}》")
-            # 输出基本的信息, 包括书籍名、作者名、书籍状态、章节数和简介
-            tqdm.write(
-                f"即将下载书籍, 以下是它的基本信息:\n\t书籍名: 《{book.name}》\n" \
+        # 如果需要下载的章节数为0, 则直接输出提示即可
+        if need_chapters == 0:
+            print(
+                f"已下载过书籍, 将采用本地缓存, 以下是它的基本信息:\n\t书籍名: 《{book.name}》\n" \
                 f"\t作者名: {book.author}\n\t状态: {book.state.value[0]}\n" \
                 f"\t章节数: {all_chapters}\n\t简介: {book.desc.replace('\n', '\n\t')}"
             )
+            return None
+        # 创建进度条, 并设置总长度(需要下载的章节数)和书籍名称
+        bar = tqdm(total=need_chapters)
+        bar.set_description(f"《{book.name}》")
+        # 输出基本的信息, 包括书籍名、作者名、书籍状态、章节数和简介
+        tqdm.write(
+            f"即将下载书籍, 以下是它的基本信息:\n\t书籍名: 《{book.name}》\n" \
+            f"\t作者名: {book.author}\n\t状态: {book.state.value[0]}\n" \
+            f"\t章节数: {all_chapters}\n\t简介: {book.desc.replace('\n', '\n\t')}"
+        )
         
     def chapter_info_callback(chapter: Chapter):
         """更新章节的基本信息, 并更新进度条"""
         nonlocal bar
         # 更新进度条的进度
         if bar is not None:
-            with TLOCK:
-                bar.update()
+            bar.update()
     
     def error_callback(exception: Exception):
         """出现错误时显示它们, 来排查程序执行过程中的问题"""
         nonlocal bar
-        # 输出错误信息, 以方便定位问题
+        # 重构错误信息的格式
         exception_info = traceback.format_exception(exception)
         exception_info = [f'\t{i}' for i in exception_info]
         error_message_str = "".join(exception_info)
+        # 输出错误信息到命令行
         if bar is not None:
-            with TLOCK:
-                tqdm.write(f"出现了一个错误:\n{error_message_str}")
+            tqdm.write(f"出现了一个错误:\n{error_message_str}")
         else:
             print(f"出现了一个错误:\n{error_message_str}")
     
@@ -82,9 +77,8 @@ def default_callback():
         nonlocal bar
         # 确保在书籍下载完毕后进度条被关闭
         if bar is not None:
-            with TLOCK:
-                bar.close()
-                bar = None
+            bar.close()
+            bar = None
     
     return (book_info_callback, chapter_info_callback, error_callback, close_bar)
 
@@ -93,7 +87,7 @@ class BookWeb(metaclass=ABCMeta):
     """通用引擎模版, 一个基本的网站引擎应当包含这些信息"""
     # 网站的名字
     name: str = "默认网站"
-    # 网站可能的网址列表，注意应有两个"."，即分为三节
+    # 网站可能的网址列表
     domains: List[str] = ["www.example.com",]
     # 引擎是否可用
     workable: bool = True
@@ -341,10 +335,11 @@ class DownloadManager(object):
         # 使用本地副本将已下载的章节补充入书籍中
         if not Settings.FORCE_RELOAD:
             book = self.__book_shelf.complete_book(book)
-        # 触发书籍信息获取回调函数并返回值
+        # 触发书籍信息获取回调函数
         self.__book_info_callback(
             book, len(chapter_url_list), len(chapter_url_list) - len(book)
         )
+        # 将书籍添加到书架上
         self.__book_shelf.add_books([(book, hash(self.__engine))], Settings.FORCE_RELOAD)
         # 返回最终的下载结果
         return book, chapter_url_list
@@ -376,7 +371,7 @@ class DownloadManager(object):
         # 确认章节是否已经存在于书籍中, 若存在则直接退出下载
         for one_chapter in book.chapter_list:
             # 判断是否存在主要基于章节的 index
-            if (index) == one_chapter.index:
+            if index == one_chapter.index:
                 return True
         # 获取章节内容
         result_chapter_content: Tuple[bool, Chapter] = \
@@ -387,12 +382,14 @@ class DownloadManager(object):
         chapter = result_chapter_content[1]
         chapter.index = index
         chapter.book_name = book.name
-        # 检查书籍的内容是否过短
+        # 检查章节的内容是否过短
         if chapter.word_count <= 500:
             self.__error_callback(Exception(f"章节内容过短: {chapter.text[:20]}..."))
-        # 向书籍中加入章节并回调章节信息
-        with self.__thread_lock:
-            book.append(chapter)
-            self.__book_shelf.add_chapters([(chapter, book)], Settings.FORCE_RELOAD)
-            self.__chapter_info_callback(chapter)
+        # 向书籍中加入章节
+        book.append(chapter)
+        # 向书架添加章节
+        self.__book_shelf.add_chapters([(chapter, book)], Settings.FORCE_RELOAD)
+        # 触发章节信息回调函数
+        self.__chapter_info_callback(chapter)
+        # 返回下载结果
         return True
