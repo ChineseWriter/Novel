@@ -2,6 +2,7 @@
 .venv/
 .history/
 .vscode/
+.idea/
 data/
 __pycache__
 /debug.html
