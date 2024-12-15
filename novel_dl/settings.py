@@ -18,7 +18,7 @@ class Settings(object):
     
     LOG_DIR: str = os.path.join(DATA_DIR, "logs")
     LOG_MAX_FILE_NUMBER: int = 30
-    LOG_FORMAT: str = "[%(asctime)s](%(levelname)s) %(filename)s - %(lineno)s:\n\t%(message)s"
+    LOG_FORMAT: str = "[%(asctime)s](%(levelname)s)%(filename)s-%(lineno)s, in %(funcName)s:\n\t%(message)s"
     
     URLS_DIR: str = os.path.join(DATA_DIR, "urls")
 

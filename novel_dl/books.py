@@ -22,6 +22,7 @@ from PIL import Image
 
 # 导入自定义库
 from .tools import mkdir
+from .logs import Logger
 from .settings import Settings
 
 
@@ -110,6 +111,8 @@ class Chapter(object):
         for i in content:
             if isinstance(i, str):
                 buffer.append(i)
+        # 初始化日志记录器
+        self.__logger = Logger()
         # 初始化数据
         self.__name: str = _replace_illegal_chars(name)
         self.__index: int = index
@@ -135,6 +138,10 @@ class Chapter(object):
                 self.__file_path = os.path.join(self.__dir_path, f"{name}.txt")
                 with open(self.__file_path, "w", encoding="UTF-8") as txt_file:
                     txt_file.write("\n".join(buffer))
+        self.__logger.debug(
+            f"使用{self.__storage_method.value[0]}存储方式保存了章节({self.__name})内容."
+        )
+        self.__logger.debug(f"创建了名为'{self.__name}'的章节.")
     
     def __len__(self):
         return len(self.text)
@@ -187,6 +194,7 @@ class Chapter(object):
                         content = [i.rstrip("\n") for i in txt_file.readlines()]
                 except OSError:
                     content = (_EMPTY_TIP, "原因可能为缓存文件被移动或删除")
+                    self.__logger.warning("读取缓存文件时出现了一个错误.")
                 return tuple(content)
 
     @content.setter
@@ -196,6 +204,8 @@ class Chapter(object):
         for i in text:
             if isinstance(i, str):
                 buffer.append(i)
+            else:
+                self.__logger.warning("传入的文本列表中存在非 str 对象.")
         # 为每种存储方式设置对应的内容存储变量
         match self.__storage_method:
             # 使用内存存储则将段落内容数据转换为 list 即可, 便于内容的增改
@@ -207,6 +217,9 @@ class Chapter(object):
                     self.__file_path, "w", encoding="UTF-8"
                 ) as txt_file:
                     txt_file.write("\n".join(buffer))
+        self.__logger.debug(
+            f"使用{self.__storage_method.value[0]}存储方式保存了章节({self.__name})内容."
+        )
 
     @property
     def name(self):
@@ -336,6 +349,8 @@ class Book(object):
         assert isinstance(state, self.State)
         assert isinstance(desc, str)
         assert isinstance(cover_image, bytes)
+        # 初始化日志记录器
+        self.__logger = Logger()
         # 初始化数据
         self.__name = _replace_illegal_chars(name)
         self.__author = _replace_illegal_chars(author)
@@ -348,9 +363,15 @@ class Book(object):
         self.__chapter_list: List[Chapter] = []
         # 为了适应多线程时使用该对象, 特别是添加章节时, 需要在此设置线程锁保证数据安全
         self.__lock = Lock()
+        self.__logger.debug(f"创建了名为'{self.__name}'的书籍.")
     
     def __len__(self):
         return len(self.__chapter_list)
+    
+    def __bool__(self):
+        if hash(self) == hash(self.empty_book()):
+            return False
+        return True
 
     def __repr__(self):
         return f"<Book name={self.__name} " \
@@ -375,10 +396,9 @@ class Book(object):
         :type chapter: Chapter
         """
         # 检查传入的参数是否正确
-        assert isinstance(chapter, Chapter)
-        # TODO 更新 log 模块后应使用以下的代码
-        # if not isinstance(chapter, Chapter):
-        #     return False
+        if not isinstance(chapter, Chapter):
+            self.__logger.warning("向书籍的章节列表中添加的不为章节对象.")
+            return False
         # 获取线程锁以确保线程安全
         with self.__lock:
             # 确定书籍的名称匹配且章节还未加入该书籍的章节列表
@@ -390,6 +410,7 @@ class Book(object):
             self.__chapter_list = sorted(
                 self.__chapter_list, key=lambda x: x.index
             )
+        self.__logger.debug(f"向书籍({self.__name})中添加了一个章节({chapter.name}).")
         return True
     
     def save(self, method: SaveMethod = SaveMethod.EPUB) -> int:
@@ -401,7 +422,11 @@ class Book(object):
         # 确认传入的参数是否正确
         assert isinstance(method, self.SaveMethod)
         # 保存书籍
-        return Saver(self, method).save()
+        book_size = Saver(self, method).save()
+        self.__logger.info(
+            f"保存了一本书籍({self.__name}), 占用磁盘空间约为%.5fMB." % (book_size / (1024 * 1024))
+        )
+        return book_size
     
     @property
     def index_list(self) -> List[int]:
@@ -441,6 +466,13 @@ class Book(object):
     @property
     def other_data(self):
         return copy.deepcopy(self.__other_data)
+    
+    @staticmethod
+    def empty_book():
+        return Book(
+            "默认书籍", "默认作者", "https://example.com/",
+            Book.State.END, "默认描述", b""
+        )
     
     def set_other_data(self, key: str, item: Any):
         """设置书籍的其它数据

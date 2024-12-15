@@ -22,24 +22,18 @@ from .tools import mkdir
 from .settings import Settings
 
 
-def synchronized(func):
-    func.__lock__ = threading.Lock()
-
-    def lock_func(*args, **kwargs):
-        with func.__lock__:
-            return func(*args, **kwargs)
-
-    return lock_func
-
-
-class Singleton(object):
-    __instance = None
+def singleton(cls):
+    instances = {}
+    lock = threading.Lock()
     
-    @synchronized
-    def __new__(cls):
-        if not cls.__instance:
-            cls.__instance = super(Singleton, cls).__new__(cls)
-        return cls.__instance
+    def wrapper(*args, **kwargs):
+        if cls not in instances:
+            with lock:
+                if cls not in instances:  # 双重检查锁定
+                    instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    
+    return wrapper
 
 
 class TqdmHandler(logging.Handler):
@@ -51,7 +45,8 @@ class TqdmHandler(logging.Handler):
             self.handleError(record)
 
 
-class Logger(Singleton):
+@singleton
+class Logger(object):
     def __init__(self):
         """整个包所使用的日志记录器"""
         # 创建必要的目录
@@ -60,7 +55,7 @@ class Logger(Singleton):
         # 获取标准库中的记录器
         self.__logger = logging.getLogger("novel_dl")
         # 设置日志记录器级别为DEBUG
-        self.__logger.setLevel(logging.DEBUG if Settings.DEBUG else logging.WARNING)
+        self.__logger.setLevel(logging.DEBUG)
         # 使子记录器的日志不向父记录器传递
         self.__logger.propagate = False
         # 设置日志记录的格式
@@ -139,4 +134,24 @@ class Logger(Singleton):
     @property
     def object(self):
         return self.__logger
+    
+    @property
+    def debug(self):
+        return self.__logger.debug
+    
+    @property
+    def info(self):
+        return self.__logger.info
+    
+    @property
+    def warning(self):
+        return self.__logger.warning
+    
+    @property
+    def error(self):
+        return self.__logger.error
+    
+    @property
+    def critical(self):
+        return self.__logger.critical
         
