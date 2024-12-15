@@ -6,6 +6,7 @@
 
 
 # 预导入自定义函数(类)
+from .logs import Logger
 from .settings import Settings
 from .bookshelf import BookShelf
 from .web_manager import WebManager
