@@ -7,17 +7,19 @@
 
 
 # 导入标准库
+import logging.handlers
 import os
 import copy
 import logging
 import threading
 from typing import Dict, List
 
-# 导入自定义库
-from .settings import Settings
-
 # 导入第三方库
-import tqdm
+from tqdm import tqdm
+
+# 导入自定义库
+from .tools import mkdir
+from .settings import Settings
 
 
 def synchronized(func):
@@ -52,6 +54,9 @@ class TqdmHandler(logging.Handler):
 class Logger(Singleton):
     def __init__(self):
         """整个包所使用的日志记录器"""
+        # 创建必要的目录
+        mkdir(Settings.DATA_DIR)
+        mkdir(Settings.LOG_DIR)
         # 获取标准库中的记录器
         self.__logger = logging.getLogger("novel_dl")
         # 设置日志记录器级别为DEBUG
@@ -75,7 +80,7 @@ class Logger(Singleton):
     def __call__(self):
         return self.__logger
     
-    def __add_default_handlers(self) -> Dict[str, logging.Handler]:
+    def __add_default_handlers(self):
         # 创建命令行日志显示器
         stream_handler = logging.StreamHandler()
         # 设置命令行日志显示器的日志级别
@@ -86,9 +91,13 @@ class Logger(Singleton):
         self.add_handler("stream_handler", stream_handler)
         
         # 创建日志文件写入器
-        file_handler = logging.FileHandler(
-              os.path.join(Settings.LOG_DIR, f"{Settings.LOG_FILE_NAME}.log"), encoding="UTF-8"
-        )
+        file_handler = logging.handlers.TimedRotatingFileHandler(
+			filename=os.path.join(Settings.LOG_DIR, "novel_dl_logs"),
+   			when="MIDNIGHT", interval=1, encoding="UTF-8",
+      		backupCount=Settings.LOG_MAX_FILE_NUMBER
+		)
+        # 设置文件后缀
+        file_handler.suffix = "%Y-%m-%d.log"
         # 设置日志文件写入器的日志级别
         file_handler.setLevel(logging.WARNING)
         # 设置日志处理器的日志格式
@@ -108,13 +117,13 @@ class Logger(Singleton):
     def add_handler(self, name: str, handler: logging.Handler):
         assert isinstance(name, str)
         assert isinstance(handler, logging.Handler)
-        self.__handlers["name"] = copy.deepcopy(handler)
+        self.__handlers[name] = handler
     
     def add_scheme(self, name: str, scheme: List[str]):
         assert isinstance(name, str)
         for i in scheme:
             assert isinstance(i, str)
-            assert i in self.__handlers()
+            assert i in self.__handlers
         self.__scheme[name] = copy.deepcopy(scheme)
     
     def set_scheme(self, name: str):

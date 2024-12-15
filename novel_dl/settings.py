@@ -16,9 +16,9 @@ class Settings(object):
     MULTI_THREAD: Literal[True, False] = True
     FORCE_RELOAD: Literal[True, False] = False
     
-    LOG_FILE_NAME: str = "logs"
     LOG_DIR: str = os.path.join(DATA_DIR, "logs")
-    LOG_FORMAT: str = "[%(asctime)s]{%(levelname)s} %(name)s (%(filename)s - %(lineno)s):\n\t%(message)s"
+    LOG_MAX_FILE_NUMBER: int = 30
+    LOG_FORMAT: str = "[%(asctime)s](%(levelname)s) %(filename)s - %(lineno)s:\n\t%(message)s"
     
     URLS_DIR: str = os.path.join(DATA_DIR, "urls")
 
