@@ -154,4 +154,3 @@ class Logger(object):
     @property
     def critical(self):
         return self.__logger.critical
-        
