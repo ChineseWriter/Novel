@@ -93,8 +93,8 @@ class Chapter(object):
         :type source: str
         :param book_name: 章节所属的书籍名
         :type book_name: str
-        :param text: 章节的内容, 要求每段为一个 str , 所有段落的 str 组成一个 tuple
-        :type text: Iterable[str]
+        :param content: 章节的内容, 要求每段为一个 str , 所有段落的 str 组成一个 tuple
+        :type content: Iterable[str]
         :param storage_method: 章节的存储方式
         :type storage_method: tuple
         
