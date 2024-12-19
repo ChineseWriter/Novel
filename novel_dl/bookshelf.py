@@ -356,6 +356,8 @@ class BookShelf(object):
             result = cursor.execute(
                 "SELECT * FROM CHAPTERS WHERE BOOK_HASH=?", [hash(book)]
             ).fetchall()
+            # 创建一个计数器, 用于记录添加的章节数
+            counter = 0
             # 依据查询结果创建章节对象
             for data in result:
                 # 将章节对象添加到书籍对象中
@@ -364,5 +366,10 @@ class BookShelf(object):
                         data[2], data[3], "", book.name, data[4].split("\n\t")
                     )
                 )
+                # 计数器加一
+                counter += 1
+        self.__logger.info(
+            f"成功将书籍({book.name})的章节添加到书籍对象中, 共添加了{counter}章."
+        )
         # 返回完整的书籍对象
         return book
