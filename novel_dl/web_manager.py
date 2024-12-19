@@ -24,7 +24,7 @@ from .logs import Logger
 from .network import Network
 from .settings import Settings
 from .tools import try_callback
-from .books import Book, Chapter, EMPTY_BOOK
+from .books import Book, Chapter
 
 
 def default_callback():
@@ -206,7 +206,7 @@ class WebManager(object):
         engine = self.get_engine(url)
         # 检查是否存在支持该网址的引擎
         if engine is None:
-            return EMPTY_BOOK
+            return Book.empty_book()
         self.__logger.info(f"开始下载该 URL ({url})下的书籍")
         # 返回下载的结果
         return DownloadManager(url, engine, *default_callback()).download()
@@ -268,7 +268,7 @@ class DownloadManager(object):
         book = self.__download_chapters_content(book_obj, chapter_list)
         # 调用停止下载回调函数, 防止出现进度条等组件未正确退出的情况
         self.__stop_callback()
-        if book == EMPTY_BOOK:
+        if book == Book.empty_book():
             self.__logger.error("下载书籍失败.")
         # 返回整本书籍
         return book
@@ -319,18 +319,18 @@ class DownloadManager(object):
                 f"引擎对应书籍 URL 模式({self.__engine.book_url_pattern})" \
                     f"与传入 URL ({self.__url})不匹配."
             )
-            return EMPTY_BOOK, []
+            return Book.empty_book(), []
         # 获取书籍的基本信息
         result_book_info: Tuple[bool, Book] = \
             self.__operate(self.__url, self.__engine.get_book_info, self.__engine)
         if not result_book_info[0]:
-            return EMPTY_BOOK, []
+            return Book.empty_book(), []
         book = result_book_info[1]
         # 获取书籍的所有章节的网址
         result_chapter_urls: Tuple[bool, List[str]] = \
             self.__operate(self.__url, self.__engine.get_chapter_url, self.__engine)
         if not result_chapter_urls[0]:
-            return EMPTY_BOOK, []
+            return Book.empty_book(), []
         # 过滤与引擎对应的章节 URL 模式不匹配的章节 URL
         chapter_url_list: List[str] = []
         for chapter_url in result_chapter_urls[1]:

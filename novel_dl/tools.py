@@ -9,8 +9,8 @@
 import os
 import hashlib
 import sqlite3
-from typing import Callable
 from threading import Lock
+from typing import Callable
 
 
 def mkdir(path: str) -> None:

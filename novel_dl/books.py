@@ -16,9 +16,9 @@ from threading import Lock
 from typing import List, Tuple, Any, Iterable
 
 # 导入第三方库
-import yaml  # 该库用 pip 安装时的名称为 pyyaml
-from ebooklib import epub
 from PIL import Image
+from ebooklib import epub
+import yaml  # 该库用 pip 安装时的名称为 pyyaml
 
 # 导入自定义库
 from .tools import mkdir
@@ -264,8 +264,7 @@ class Book(object):
         # 设置必要的状态常量
         END = ("完结", 1)
         SERIALIZING = ("连载中", 2)
-        FORECAST = ("预告", 3)
-        BREAK = ("断更", 4)
+        BREAK = ("断更", 3)
 
         @classmethod
         def transform(cls, number: int):
@@ -279,8 +278,6 @@ class Book(object):
                 >>> Book.State.transform(1)
                 >>> Book.State.transform(2)
                 >>> Book.State.transform(3)
-                >>> Book.State.transform(4)
-                >>> Book.State.transform(5)
             """
             # 尝试查找匹配的常量
             for i in list(cls):
@@ -467,6 +464,7 @@ class Book(object):
     def other_data(self):
         return copy.deepcopy(self.__other_data)
     
+    # TODO 该函数存在一个优化方法, 是将静态方法和property方法的装饰器合并
     @staticmethod
     def empty_book():
         return Book(
@@ -486,14 +484,6 @@ class Book(object):
         assert isinstance(key, str)
         # 设置数据
         self.__other_data[key] = item
-
-
-# 可能常用的常量
-global EMPTY_BOOK
-EMPTY_BOOK = Book(
-    "默认书籍", "默认作者", "https://example.com/",
-    Book.State.END, "默认描述", b""
-)
 
 
 class Saver(object):

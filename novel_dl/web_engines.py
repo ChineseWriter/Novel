@@ -16,8 +16,8 @@ from threading import Lock
 
 import requests
 
-from .books import Book, Chapter
 from .network import Network
+from .books import Book, Chapter
 from .web_manager import BookWeb
 
 
@@ -222,7 +222,7 @@ class Engine3(BookWeb):
             )
             n = response.bs \
                 .find("div", attrs={"class": "muye-reader-content noselect"}).text
-        except Exception as e:
+        except Exception:
             return None
         else:
             if len(n) <= 200:

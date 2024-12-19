@@ -9,8 +9,9 @@
 from .logs import Logger
 from .settings import Settings
 from .bookshelf import BookShelf
+from .books import Chapter, Book
 from .web_manager import WebManager
-from .books import Chapter, Book, EMPTY_BOOK
+
 
 # 更新说明
 VERSION = [
