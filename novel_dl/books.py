@@ -5,16 +5,16 @@
 # @Author: Amundsen Severus Rubeus Bjaaland
 """书籍相关的工具, 包括书籍对象, 章节对象, 以及用于内容保存的对象等
 
-Classes:
-	Chapter: 书籍的章节对象, 包括章节的名称、序号、源网址、所属书籍名、内容和存储方式等属性。
-	Book: 书籍对象, 包括书籍的名称、作者、状态、源网址、简介、封面图片、章节列表等属性。
-	Saver: 书籍保存 API, 用于按照指定方式保存书籍。
-Functions:
-	_replace_illegal_chars(text: str) -> str: 替换非法字符, 返回替换以后的字符串。
 Constants:
 	_EMPTY_TIP: str = "段落内容为空"
 	ILLEGAL_CHARS: List[str] = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
 	ILLEGAL_CHARS_REP: List[str] = ['＜', '＞', '：', '＂', '／', '＼', '｜', '？', '＊']
+Functions:
+	_replace_illegal_chars(text: str) -> str: 替换非法字符, 返回替换以后的字符串。
+Classes:
+	Chapter: 书籍的章节对象, 包括章节的名称、序号、源网址、所属书籍名、内容和存储方式等属性。
+	Book: 书籍对象, 包括书籍的名称、作者、状态、源网址、简介、封面图片、章节列表等属性。
+	Saver: 书籍保存 API, 用于按照指定方式保存书籍。
 Usage Example:
 	>>> chapter = Chapter("测试章节", 1, "https://example.com/", "测试书籍")
 	>>> book = Book("测试书籍", "测试作者", "https://example.com/")

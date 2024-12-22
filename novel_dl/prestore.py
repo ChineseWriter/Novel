@@ -9,11 +9,13 @@ import os
 import re
 import time
 import random
+import traceback
 import threading
 from typing import List, Callable
 from urllib.parse import urlparse, urlunparse
 
 from .books import Book
+from .logs import Logger
 from .network import Network
 from .settings import Settings
 from .bookshelf import BookShelf
@@ -41,10 +43,11 @@ class PreStore(object):
     def __init__(self, engine: BookWeb, book_info_callback: Callable[[Book], None]):
         mkdir(Settings.DATA_DIR)
         mkdir(Settings.URLS_DIR)
+        self.__logger = Logger()
         self.__engine = engine
         self.__book_info_callback = try_callback(book_info_callback)
         db_path = os.path.join(Settings.URLS_DIR, str(hash(engine)))
-        self.__sql_manager = SQLManager(db_path)
+        self.__sql_manager = SQLManager(db_path, False)
         self.__create_table()
         
         self.__stop_flag = False
@@ -140,8 +143,10 @@ class PreStore(object):
         next_url = f"https://{self.__engine.domains[-1]}/"
         while (not self.__stop_flag):
             try:
+                self.__logger.info(f"正在预寻找书籍: {next_url}")
                 response = Network.get(next_url, self.__engine.encoding)
-            except Exception:
+            except Exception as Error:
+                self.__logger.warning(traceback.format_exc())
                 time.sleep(5)
             else:
                 next_url = self.__deal_url(response)

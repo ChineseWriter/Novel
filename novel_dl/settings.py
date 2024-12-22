@@ -11,7 +11,7 @@ from typing import Literal
 
 class Settings(object):
     DEBUG: Literal[True, False] = False
-    DATA_DIR: str = os.path.abspath(".\\data")
+    DATA_DIR: str = os.path.abspath("data")
     
     MULTI_THREAD: Literal[True, False] = True
     FORCE_RELOAD: Literal[True, False] = False

@@ -1,9 +1,42 @@
-#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 # @FileName: logs.py
 # @Time: 02/11/2024 10:21
 # @Author: Amundsen Severus Rubeus Bjaaland
-"""为整个项目提供日志支持"""
+"""为整个项目提供日志支持
+
+Functions:
+	singleton(cls):
+		单例装饰器，用于确保一个类只有一个实例
+Classes:
+	TqdmHandler(logging.Handler):
+		emit(record: logging.LogRecord):
+			输出日志记录到tqdm进度条
+	Logger(object):
+		__init__():
+			初始化Logger类, 创建必要的目录和日志处理器
+		__call__():
+			返回日志记录器实例
+		__add_default_handlers():
+			添加默认的日志处理器
+		add_handler(name: str, handler: logging.Handler):
+			添加自定义日志处理器
+		add_scheme(name: str, scheme: List[str]):
+			添加日志处理器配置方案
+		set_scheme(name: str):
+			设置当前使用的日志处理器配置方案
+		object:
+			返回日志记录器实例
+		debug:
+			调用日志记录器的debug方法
+		info:
+			调用日志记录器的info方法
+		warning:
+			调用日志记录器的warning方法
+		error:
+			调用日志记录器的error方法
+		critical:
+			调用日志记录器的critical方法
+"""
 
 
 # 导入标准库
