@@ -208,6 +208,7 @@ class BookShelf(object):
                 f"成功将书籍({one_book.name})添加到书架中." \
                 f"(若已存在则{'' if force_reload else '不'}覆盖)"
             )
+            # FIXME 日志打印了两次
     
     def search_books_by_name(
         self, name: str
