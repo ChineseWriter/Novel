@@ -107,7 +107,7 @@ class Pipeline(object):
         name = input("请输入要搜索的书籍名称: ")
         # 搜索书籍
         print("查找书籍中 . . .", end="")
-        books = bookshelf.search_books_by_name(name)
+        books = list(bookshelf.search_books_by_name(name))
         print("查找完成!\n结果如下: ")
         for i, (one_book, sources) in enumerate(books):
             print(f"{i + 1}.{one_book.author} - {one_book.name}")
@@ -121,23 +121,29 @@ class Pipeline(object):
         one_book, sources = books[index - 1]
         
         # 展示书籍来源
-        for i, source in enumerate(sources):
-            print(
-                f"{i + 1}." \
-                f"[{manager.get_engine(source).name}]" \
-                f"{source}"
-            )
-        # 选择书籍来源
-        try:
-            index = int(input("请输入要下载的书籍来源序号: "))
-            assert 0 < index <= len(sources)
-        except (ValueError, AssertionError):
-            print("输入的序号不合法!")
-            return None
-        source = sources[index - 1]
+        if len(sources) != 1:
+            for i, source in enumerate(sources):
+                print(
+                    f"{i + 1}." \
+                    f"[{manager.get_engine(source).name}]" \
+                    f"{source}"
+                )
+            # 选择书籍来源
+            try:
+                index = int(input("请输入要下载的书籍来源序号: "))
+                assert 0 < index <= len(sources)
+            except (ValueError, AssertionError):
+                print("输入的序号不合法!")
+                return None
+            source = sources[index - 1]
+        else:
+            print("仅有一个来源, 将自动选择.")
+            source = sources[0]
 
         # 下载书籍
+        print(f"开始下载书籍({one_book.name})的内容. . .\n\n")
         self.download_novel(source, save_method)
+        print("\n书籍下载完成!")
         # 退出程序
         return None
     
