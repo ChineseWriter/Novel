@@ -108,6 +108,7 @@ class Pipeline(object):
         name = input("请输入要搜索的书籍名称: ")
         # 搜索书籍
         print("查找书籍中 . . .", end="")
+        # TODO 限制获取上限
         books = list(bookshelf.search_books_by_name(name))
         if len(books) == 0:
             print("未找到符合条件的书籍. 程序即将退出.")
