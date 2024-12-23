@@ -54,13 +54,25 @@ class Network(object):
         """
         # 确认传入的参数的类型是否正确
         assert isinstance(href, str)
+        # 确认 href 不为 JavaScript 代码
+        if href.startswith("javascript:"):
+            return ""
+        # 确认 href 不为网站主页面
+        if href.startswith("www"):
+            return ""
+        # 确认 href 不为网站的主机名
+        if href == urlparse(self.__response.url).netloc:
+            return ""
         # 获取下一个 URL
         next_url = urljoin(self.__response.url, href)
         # 确认该 URL 的协议受该程序支持
         if urlparse(next_url).scheme not in self.SUPPORTED_PROTOCOLS:
             return ""
         # 如果要求下一个 URL 为该网站的 URL, 但不满足该条件, 则返回空字符串
-        if lock and (urlparse(next_url).netloc != urlparse(self.__response.url).netloc):
+        if (lock and (
+            urlparse(next_url).netloc != 
+            urlparse(self.__response.url).netloc
+        )):
             return ""
         # 返回获取的结果
         return next_url
@@ -71,7 +83,10 @@ class Network(object):
             debug_file.write(self.__response.text)
     
     @classmethod
-    def get(cls, url: str, encoding: str = "UTF-8", **other_headers):
+    def get(
+        cls, url: str, encoding: str = "UTF-8",
+        redirect: bool = True, **other_headers
+    ):
         """使用 GET 方法获取 Web 页面
         该方法主要将 requests.get 函数进行包装
         
@@ -79,6 +94,8 @@ class Network(object):
         :type url: str
         :param encoding: 要获取页面的编码
         :type encoding: str
+        :param redirect: 是否允许重定向
+        :type redirect: bool
         :param other_headers: 其它的要带在 headers 中的参数,
             若未指定 User_Agent, 则使用随机 Firefox 的 UA
         """
@@ -99,7 +116,7 @@ class Network(object):
             buffer.pop("User_Agent")
         # 获取页面并返回
         return Network(
-            requests.get(url, headers=buffer),
+            requests.get(url, allow_redirects=redirect, headers=buffer),
                encoding
         )
     

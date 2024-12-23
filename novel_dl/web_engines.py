@@ -31,7 +31,7 @@ class Engine1(BookWeb):
     book_url_pattern = r"^/book/\d+\.html$"
     chapter_url_pattern = r"^/book/\d+/\d+\.html$"
     encoding = "UTF-8"
-    prestore_book_urls = True
+    prestore_book_urls = False
     
     def get_book_info(self, response: Network) -> Book:
         name = response.h1

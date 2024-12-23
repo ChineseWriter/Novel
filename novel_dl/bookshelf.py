@@ -11,6 +11,7 @@ import os
 import json
 import logging
 import sqlite3
+import threading
 from functools import reduce
 from typing import Iterable, Iterator, List, Tuple
 
@@ -27,6 +28,21 @@ from .tools import mkdir, str_hash, SQLManager
 jieba.setLogLevel(logging.INFO)
 
 
+def singleton(cls):
+    instances = {}
+    lock = threading.Lock()
+    
+    def wrapper(*args, **kwargs):
+        if cls not in instances:
+            with lock:
+                if cls not in instances:  # 双重检查锁定
+                    instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    
+    return wrapper
+
+
+@singleton
 class BookShelf(object):
     # 使用枚举形式定义可操作的数据库表, 实际的表名是字符串变量内容的大写形式
     BOOKS = "Books"  # 书籍表
