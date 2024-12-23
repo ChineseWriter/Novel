@@ -119,7 +119,7 @@ class BookShelf(object):
         # 创建日志记录器
         self.__logger = Logger()
         # 依据程序设置合成数据库文件的路径
-        self.DB_PATH: str = os.path.join(Settings.BOOKS_DIR, "bookshelf.db")
+        self.DB_PATH: str = Settings.BOOKS_DB_PATH
         # 创建数据库管理器
         self.__sql_manager = SQLManager(Settings.BOOKS_DB_PATH, False)
         # 创建数据库中的表

@@ -24,5 +24,5 @@ class Settings(object):
 
     BOOKS_DIR: str = os.path.join(DATA_DIR, "books")
     BOOKS_CACHE_DIR: str = os.path.join(BOOKS_DIR, "cache")
-    BOOKS_DB_PATH: str = os.path.join(BOOKS_DIR, "bookshelf")
+    BOOKS_DB_PATH: str = os.path.join(BOOKS_DIR, "bookshelf.db")
     BOOKS_STORAGE_DIR: str = os.path.join(BOOKS_DIR, "storage")

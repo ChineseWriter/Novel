@@ -130,6 +130,10 @@ class Chapter(object):
                 buffer.append(i)
         # 初始化日志记录器
         self.__logger = Logger()
+        # 创建必要的目录
+        mkdir(Settings.DATA_DIR)
+        mkdir(Settings.BOOKS_DIR)
+        mkdir(Settings.BOOKS_CACHE_DIR)
         # 初始化数据
         self.__name: str = _replace_illegal_chars(name)
         self.__index: int = index
@@ -517,6 +521,10 @@ class Saver(object):
         # 检查传入的参数是否正确
         assert isinstance(book, Book)
         assert isinstance(method, Book.SaveMethod)
+        # 创建必要的目录
+        mkdir(Settings.DATA_DIR)
+        mkdir(Settings.BOOKS_DIR)
+        mkdir(Settings.BOOKS_STORAGE_DIR)
         # 初始化数据
         self.__book = book
         self.__method = method
