@@ -25,10 +25,55 @@ def abspath(path):
 
 在 Windows 系统上, 我找到的源码是这样的:
 ```python
-# TODO 补全这里的源码
+def abspath(path):
+    """Return an absolute path."""
+    path = os.fspath(path)
+    if isinstance(path, bytes):
+        if not path.startswith(b'/'):
+            path = join(os.getcwdb(), path)
+    else:
+        if not path.startswith('/'):
+            path = join(os.getcwd(), path)
+    return normpath(path)
 ```
 
 ## 问题解决
-首先, 这个函数的逻辑是将给定的 path 变量和目前的工作目录直接进行拼接, 所以传入的路径都是相对于目前的工作目录而言的.
+首先, 这个函数的逻辑是: 
+1. 确定给定的路径不是一个绝对路径, 具体在 Linux 中有一个用于确定的函数, 在 Windows 中则是是否以"/"开头.
+2. 如果不是一个绝对路径, 则将给定的路径与现有的工作目录进行拼接, 因为一个相对路径必须要有一个基准路径. 注意: 这个基准路径不是当前文件所在的路径, 而是当前工作目录.
+3. 如果是一个绝对路径, 则直接返回这个路径.
+4. 返回时调用 normpath 函数, 用于规范化路径.
 
-其次, 这个函数使用同在这个模块内的 join 函数进行拼接路径, 所以这里只能使用这个函数允许的分隔符进行表示, 在 Ubuntu 系统中允许的是"/".
+其次, 问题的关键在于 normpath 函数, 这个函数在 Windows 和 Linux 中的表现是不一样的.
+
+以下是 Windows 中的 normpath 函数的源码:
+```python
+def normpath(path):
+	"""Normalize path, eliminating double slashes, etc."""
+	path = os.fspath(path)
+	if isinstance(path, bytes):
+		sep = b'/'
+		dot = b'.'
+		dotdot = b'..'
+	else:
+		sep = '/'
+		dot = '.'
+		dotdot = '..'
+	if not path:
+		return dot
+	_, initial_slashes, path = splitroot(path)
+	comps = path.split(sep)
+	new_comps = []
+	for comp in comps:
+		if not comp or comp == dot:
+			continue
+		if (comp != dotdot or (not initial_slashes and not new_comps) or
+				(new_comps and new_comps[-1] == dotdot)):
+			new_comps.append(comp)
+		elif new_comps:
+			new_comps.pop()
+	comps = new_comps
+	path = initial_slashes + sep.join(comps)
+	return path or dot
+```
+由此可以看出在 Windows 中 Python 主动将路径中的 "." 部分解释为当前路径, ".." 部分解释为上级路径, 而在 Linux 中则不会.
