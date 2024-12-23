@@ -95,6 +95,7 @@ class Pipeline(object):
         # 退出程序
         return None
     
+    # TODO 在 README 文件中给这个命令添加说明
     def download_novel_by_name(
         self, save_method: int = 1
     ):
@@ -149,12 +150,6 @@ class Pipeline(object):
         print("\n书籍下载完成!")
         # 退出程序
         return None
-    
-    def search_books_by_name(self, name: str):
-        bookshelf = novel_dl.BookShelf()
-        books = bookshelf.search_books_by_name(name)
-        for one_book, sources in books:
-            print(repr(one_book))
 
 
 if __name__ == "__main__":
