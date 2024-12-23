@@ -108,6 +108,9 @@ class Pipeline(object):
         # 搜索书籍
         print("查找书籍中 . . .", end="")
         books = list(bookshelf.search_books_by_name(name))
+        if len(books) == 0:
+            print("未找到符合条件的书籍. 程序即将退出.")
+            return None
         print("查找完成!\n结果如下: ")
         for i, (one_book, sources) in enumerate(books):
             print(f"{i + 1}.{one_book.author} - {one_book.name}")
