@@ -68,7 +68,7 @@ class Pipeline(object):
         # 下载指定的书籍
         book = manager.download(url)
         # 保存书籍后退出程序
-        if book != novel_dl.EMPTY_BOOK:
+        if book != novel_dl.Book.empty_book():
             book.save(method)
         # 退出程序
         return None
@@ -90,8 +90,44 @@ class Pipeline(object):
         for one_url in urls:
             # 下载指定的书籍并保存
             book = manager.download(one_url)
-            if book != novel_dl.EMPTY_BOOK:
+            if book != novel_dl.Book.empty_book():
                 book.save(method)
+        # 退出程序
+        return None
+    
+    def download_novel_by_name(
+        self, save_method: int = 1
+    ):
+        # 获取书籍引擎管理类
+        manager = novel_dl.WebManager()
+        # 获取书架
+        bookshelf = novel_dl.BookShelf()
+        
+        # 获取书籍名称
+        name = input("请输入要搜索的书籍名称: ")
+        # 搜索书籍
+        print("查找书籍中 . . .", end="")
+        books = bookshelf.search_books_by_name(name)
+        print("查找完成!\n结果如下: ")
+        for i, (one_book, sources) in enumerate(books):
+            print(f"{i + 1}.{one_book.author} - {one_book.name}")
+        # 选择书籍
+        index = int(input("请输入要下载的书籍序号: "))
+        one_book, sources = books[index - 1]
+        
+        # 展示书籍来源
+        for i, source in enumerate(sources):
+            print(
+                f"{i + 1}." \
+                f"[{manager.get_engine(source).name}]" \
+                f"{source}"
+            )
+        # 选择书籍来源
+        index = int(input("请输入要下载的书籍来源序号: "))
+        source = sources[index - 1]
+
+        # 下载书籍
+        self.download_novel(source, save_method)
         # 退出程序
         return None
     
