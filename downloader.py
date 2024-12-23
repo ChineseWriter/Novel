@@ -112,7 +112,12 @@ class Pipeline(object):
         for i, (one_book, sources) in enumerate(books):
             print(f"{i + 1}.{one_book.author} - {one_book.name}")
         # 选择书籍
-        index = int(input("请输入要下载的书籍序号: "))
+        try:
+            index = int(input("请输入要下载的书籍序号: "))
+            assert 0 < index <= len(books)
+        except (ValueError, AssertionError):
+            print("输入的序号不合法!")
+            return None
         one_book, sources = books[index - 1]
         
         # 展示书籍来源
@@ -123,7 +128,12 @@ class Pipeline(object):
                 f"{source}"
             )
         # 选择书籍来源
-        index = int(input("请输入要下载的书籍来源序号: "))
+        try:
+            index = int(input("请输入要下载的书籍来源序号: "))
+            assert 0 < index <= len(sources)
+        except (ValueError, AssertionError):
+            print("输入的序号不合法!")
+            return None
         source = sources[index - 1]
 
         # 下载书籍
