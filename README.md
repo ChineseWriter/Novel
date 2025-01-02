@@ -53,6 +53,7 @@
 | 6 | log_format | 日志的格式 | "[%(asctime)s]{%(levelname)s} %(name)s (%(filename)s - %(lineno)s):\n\t%(message)s" |
 
 ## 支持的网站列表
+<!-- TAG 每次更新时应当确认支持的网站列表是否有变化 -->
 目前小说下载器可以从以下网站下载小说:
 | 计数 | 网站名 | 网站网址 |
 | :-: | :-: | :-: |
