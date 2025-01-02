@@ -57,11 +57,9 @@
 | 1 | 笔趣阁 | www.biquge.hk, www.biequgei.com |
 | 2 | 番茄小说 | www.fanqienovel.com |
 
-## 项目概述
-项目的概述请移步[概述](/docs/summary.md).
-
-## 项目进度
-所有项目相关的进度请移步[计划](/docs/plans.md).
+## 项目相关信息
+项目的概述请移步[概述](/info/summary.md).  
+所有项目相关的进度请移步[计划](/info/plans.md).  
 
 ## 重用内部 novel_dl 包
 该部分文档暂时未编写.
