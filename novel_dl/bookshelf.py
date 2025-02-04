@@ -21,7 +21,7 @@ import jieba
 # 导入自定义库
 from .logs import Logger
 from .settings import Settings
-from .books import Book, Chapter
+from ._books import Book, Chapter
 from .tools import mkdir, str_hash, SQLManager
 
 # 防止 jieba 库输出调试信息到控制台中

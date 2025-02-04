@@ -17,7 +17,7 @@ from threading import Lock
 import requests
 
 from .network import Network
-from .books import Book, Chapter
+from ._books import Book, Chapter
 from .web_manager import BookWeb
 
 

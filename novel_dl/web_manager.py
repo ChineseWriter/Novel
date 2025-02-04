@@ -24,7 +24,7 @@ from .logs import Logger
 from .network import Network
 from .settings import Settings
 from .tools import try_callback
-from .books import Book, Chapter
+from ._books import Book, Chapter
 
 
 def default_callback():

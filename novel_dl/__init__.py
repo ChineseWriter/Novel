@@ -6,11 +6,8 @@
 
 
 # 预导入自定义函数(类)
-from .logs import Logger
+from .core import ContentType, Line
 from .settings import Settings
-from .bookshelf import BookShelf
-from .books import Chapter, Book
-from .web_manager import WebManager
 
 
 # 更新说明

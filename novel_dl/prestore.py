@@ -14,7 +14,7 @@ import threading
 from typing import List, Callable, Iterable
 from urllib.parse import urlparse, urlunparse
 
-from .books import Book
+from ._books import Book
 from .logs import Logger
 from .network import Network
 from .settings import Settings
