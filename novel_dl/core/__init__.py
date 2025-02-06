@@ -8,3 +8,4 @@
 from .settings import Settings
 from .books import ContentType, Line
 from .books import CacheMethod, Chapter
+from .books import State, Tag, Book

@@ -6,14 +6,13 @@
 
 
 import os
-import sys
 import time
-import copy
 
 from novel_dl import Settings
 from novel_dl import ContentType, Line
 from novel_dl.core.books.chapter import CacheList
 from novel_dl import CacheMethod, Chapter
+from novel_dl import State, Tag, Book
 
 
 class TestLine:
@@ -198,3 +197,91 @@ class TestChapter:
         )
         
         assert chapter_1 == chapter_2
+
+
+class TestBook:
+    def test_state(self):
+        assert State.to_obj(1) == State.END
+        assert State.to_obj("完结") == State.END
+        assert int(State.END) == 1
+        assert str(State.END) == "完结"
+        
+        assert State.to_obj(2) == State.SERIALIZING
+        assert State.to_obj("连载") == State.SERIALIZING
+        assert int(State.SERIALIZING) == 2
+        assert str(State.SERIALIZING) == "连载"
+        
+        assert State.to_obj(3) == State.BREAK
+        assert State.to_obj("断更") == State.BREAK
+        assert int(State.BREAK) == 3
+        assert str(State.BREAK) == "断更"
+        
+        assert State.to_obj(4) == State.END
+        assert State.to_obj("未知") == State.END
+    
+    def test_tag(self):
+        assert Tag.to_obj(1) == Tag.FANTASY
+        assert Tag.to_obj("玄幻") == Tag.FANTASY
+        assert int(Tag.FANTASY) == 1
+        assert str(Tag.FANTASY) == "玄幻"
+        
+        assert Tag.to_obj(2) == Tag.ROMANCE
+        assert Tag.to_obj("言情") == Tag.ROMANCE
+        assert int(Tag.ROMANCE) == 2
+        assert str(Tag.ROMANCE) == "言情"
+        
+        assert Tag.to_obj(3) == Tag.FANTASY
+        assert Tag.to_obj("未知") == Tag.FANTASY
+    
+    def test_book(self):
+        with open("tests/book.jpg", "rb") as cover_file:
+            cover = cover_file.read()
+        
+        book_1 = Book(
+            "测试书籍名_1", "测试作者名_1", State.END, "测试简介_1",
+            ["https://example.com/1", "https://example.com/2",],
+            [cover,], [Tag.FANTASY, Tag.ROMANCE,]
+        )
+        
+        assert book_1.name == "测试书籍名_1"
+        assert book_1.author == "测试作者名_1"
+        assert book_1.state == State.END
+        assert book_1.desc == "测试简介_1"
+        assert list(book_1.sources) == \
+            ["https://example.com/1", "https://example.com/2"]
+        assert list(book_1.cover_images) == [cover,]
+        assert list(book_1.tags) == [Tag.FANTASY, Tag.ROMANCE]
+        assert list(book_1.chapters) == []
+        assert len(book_1) == 0
+        
+        create_time = time.time()
+        chapter_1 = Chapter(
+            1, "测试章节名_1", ("https://example.com/1",),
+            create_time, "测试书籍名_1", (),
+            CacheMethod.Memory
+        )
+        
+        chapter_2 = Chapter(
+            2, "测试章节名_2", ("https://example.com/2",),
+            create_time, "测试书籍名_1", (),
+            CacheMethod.Memory
+        )
+        
+        book_1.append(chapter_1)
+        book_1.append(chapter_2)
+        
+        assert list(book_1.chapters) == [chapter_1, chapter_2]
+        assert len(book_1) == 2
+        
+        book_1.add_source("https://example.com/3")
+        assert list(book_1.sources) == [
+            "https://example.com/1", "https://example.com/2",
+            "https://example.com/3"
+        ]
+        
+        book_2 = Book(
+            "测试书籍名_1", "测试作者名_1", State.END, "测试简介_2",
+            ["https://example.com/1",], [cover,], [Tag.FANTASY,]
+        )
+        
+        assert book_1 == book_2

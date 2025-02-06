@@ -40,6 +40,7 @@ Line 类:
         __str__(): 返回 Line 对象的内容. 
         __hash__(): 返回 Line 对象的哈希值. 
         __eq__(other: "Line"): 判断两个 Line 对象是否相等. 
+        __bool__(): 判断 Line 对象是否存在. 
         default() -> "Line": 创建默认的 Line 对象. 
         to_dict() -> dict: 将 Line 对象转换为字典. 
         from_dict(data: dict) -> "Line": 从字典数据中创建 Line 对象. 
@@ -182,6 +183,9 @@ class Line(object):
         if not isinstance(other, Line):
             return False
         return hash(self) == hash(other)
+    
+    def __bool__(self):
+        return hash(self) != hash(Line.default())
     
     @staticmethod
     def default() -> "Line":

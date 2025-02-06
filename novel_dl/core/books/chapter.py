@@ -53,7 +53,9 @@ Chapter 类:
 - __repr__: 返回章节的表示形式。
 - __hash__: 返回章节的哈希值。
 - __eq__: 判断两个章节是否相等。
+- __bool__: 判断章节是否不为默认值。
 - __iter__: 返回章节内容的迭代器。
+- default: 创建默认的章节对象。
 - append: 向章节内容中添加一行内容。
 - add_source: 向章节来源中添加一个来源。
 - index: 返回章节索引。
@@ -359,7 +361,7 @@ class CacheList(object):
         # 删除缓存列表中的指定位置的行对象
         self.pop(index)
     
-    def sort(self, reverse=False) -> None:
+    def sort(self, reverse: bool = False) -> None:
         """对缓存列表进行排序
         
         :param reverse: 是否降序排序, 若为 True, 则降序排序, 否则升序排序
@@ -441,7 +443,7 @@ class Chapter(object):
         # 初始化数据, 其中 name 和 book_name 需要进行文件名清洗
         self.__index = index
         self.__name = sanitize_filename(name)
-        self.__sources = list(sources)
+        self.__sources = [i for i in sources]
         self.__update_time = update_time
         self.__book_name = sanitize_filename(book_name)
         self.__cache_method = cache_method
@@ -490,9 +492,22 @@ class Chapter(object):
             return False
         return hash(self) == hash(value)
     
+    def __bool__(self) -> bool:
+        return hash(self) != hash(Chapter.default())
+    
     def __iter__(self):
         # 注意: 这里的迭代器是对章节内容的迭代器
         return self.__content
+    
+    @staticmethod
+    def default() -> "Chapter":
+        """创建默认的 Chapter 对象
+        
+        :return: Chapter 对象
+        """
+        return Chapter(
+            0, "默认章节名", [], time.time(), "默认书籍名"
+        )
     
     def append(self, line: Line) -> None:
         """向章节内容中添加一行内容
