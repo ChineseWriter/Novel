@@ -5,4 +5,6 @@
 # @Author: Amundsen Severus Rubeus Bjaaland
 
 
+from .settings import Settings
 from .books import ContentType, Line
+from .books import CacheMethod, Chapter

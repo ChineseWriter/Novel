@@ -17,41 +17,41 @@ import fire
 import novel_dl
 
 
-def changable_args():
-    """指示可以更改的设置文件
-    列出 Settings 的所有类变量并排除其中不能更改的类变量
-    """
-    # 列出 Settings 的所有类变量
-    args = dir(novel_dl.Settings)
-    # 排除其中不能更改的类变量
-    args.remove("LOG_DIR")
-    args.remove("URLS_DIR")
-    args.remove("BOOKS_DIR")
-    args.remove("BOOKS_CACHE_DIR")
-    args.remove("BOOKS_DB_PATH")
-    args.remove("BOOKS_STORAGE_DIR")
-    # 返回最终结果
-    return args
+# def changable_args():
+#     """指示可以更改的设置文件
+#     列出 Settings 的所有类变量并排除其中不能更改的类变量
+#     """
+#     # 列出 Settings 的所有类变量
+#     args = dir(novel_dl.Settings)
+#     # 排除其中不能更改的类变量
+#     args.remove("LOG_DIR")
+#     args.remove("URLS_DIR")
+#     args.remove("BOOKS_DIR")
+#     args.remove("BOOKS_CACHE_DIR")
+#     args.remove("BOOKS_DB_PATH")
+#     args.remove("BOOKS_STORAGE_DIR")
+#     # 返回最终结果
+#     return args
 
 
 class Pipeline(object):
-    def __init__(self, **other_settings):
-        # 获取可以更改的设置的设置名称
-        settings_args = changable_args()
-        # 将传入的设置更新
-        for key, item in other_settings.items():
-            # 确保设置有正确的类型
-            if (item == "true") or (item == "True"):
-                item = True
-            if (item == "false") or (item == "False"):
-                item = False
-            # 更新设置
-            if key.upper() in settings_args:
-                # TODO 添加基本的检查, 防止非法设置传入导致程序崩溃
-                setattr(novel_dl.Settings, key.upper(), item)
-            else:
-                print(f"存在未知的全局设置: {key}")
-                sys.exit(-1)
+    # def __init__(self, **other_settings):
+    #     # 获取可以更改的设置的设置名称
+    #     settings_args = changable_args()
+    #     # 将传入的设置更新
+    #     for key, item in other_settings.items():
+    #         # 确保设置有正确的类型
+    #         if (item == "true") or (item == "True"):
+    #             item = True
+    #         if (item == "false") or (item == "False"):
+    #             item = False
+    #         # 更新设置
+    #         if key.upper() in settings_args:
+    #             # TODO 添加基本的检查, 防止非法设置传入导致程序崩溃
+    #             setattr(novel_dl.Settings, key.upper(), item)
+    #         else:
+    #             print(f"存在未知的全局设置: {key}")
+    #             sys.exit(-1)
 
     def test_cmd(self):
         print("命令行可正常使用。")

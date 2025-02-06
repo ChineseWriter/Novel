@@ -3,6 +3,51 @@
 # @FileName: line.py
 # @Time: 27/01/2025 19:51
 # @Author: Amundsen Severus Rubeus Bjaaland
+"""line.py
+这是一个用于处理书籍中每行内容的模块. 
+模块中定义了两个主要类: ContentType 和 Line. 
+类:
+    ContentType: 枚举类, 表示书籍中每行内容的类型. 
+    Line: 表示书籍中每行内容的类. 
+ContentType 类:
+    枚举类, 表示书籍中每行内容的类型. 
+    常量:
+        Text: 文本类型, ID 为 1, 名称为 "文本", 非二进制, HTML 标签名为 "p". 
+        Image: 图片类型, ID 为 2, 名称为 "图片", 二进制, HTML 标签名为 "img". 
+        Audio: 音频类型, ID 为 3, 名称为 "音频", 二进制, HTML 标签名为 "audio". 
+        Video: 视频类型, ID 为 4, 名称为 "视频", 二进制, HTML 标签名为 "video". 
+        CSS: 层叠式设计样表类型, ID 为 5, 名称为 "层叠式设计样表", 非二进制, HTML 标签名为 "link". 
+        JS: JavaScript 类型, ID 为 6, 名称为 "JavaScript", 非二进制, HTML 标签名为 "script". 
+    方法:
+        to_obj(value: int | str): 将常量的 ID 或名称转换为常量对象. 
+        __int__(): 返回常量的 ID. 
+        __str__(): 返回常量的名称. 
+        is_bytes() -> bytes: 判断内容是否为二进制. 
+        html_tag() -> str: 获取内容对应的 HTML 标签名. 
+Line 类:
+    表示书籍中每行内容的类. 
+    属性:
+        index: 索引, 表示内容的编号. 
+        content: 内容, 可以是字符串或二进制数据. 
+        content_type: 内容类型, 表示内容的类型. 
+        attrs: 属性, 键与值都要求为字符串类型. 
+    方法:
+        __init__(
+            index: int, content: str | bytes,
+            content_type: ContentType, **attrs
+        ): 初始化 Line 对象. 
+        __repr__(): 返回 Line 对象的字符串表示. 
+        __str__(): 返回 Line 对象的内容. 
+        __hash__(): 返回 Line 对象的哈希值. 
+        __eq__(other: "Line"): 判断两个 Line 对象是否相等. 
+        default() -> "Line": 创建默认的 Line 对象. 
+        to_dict() -> dict: 将 Line 对象转换为字典. 
+        from_dict(data: dict) -> "Line": 从字典数据中创建 Line 对象. 
+        encode() -> str: 将内容编码为 base64 编码. 
+        decode(
+            value: str, is_bytes: bool = False
+        ) -> str | bytes: 将 base64 编码的内容解码. 
+"""
 
 
 # 导入标准库
@@ -26,7 +71,7 @@ class ContentType(Enum):
     JS = (6, "JavaScript", False, "script")
     
     @classmethod
-    def to_obj(cls, value: int | str):
+    def to_obj(cls, value: int | str) -> "ContentType":
         """将常量的 ID 或名称转换为常量对象
         
         注意: 如果 value 的值不在常量中, 则返回 Text 类型
@@ -66,11 +111,11 @@ class ContentType(Enum):
     def __str__(self):
         return self.value[1]
     
-    def is_bytes(self):
+    def is_bytes(self) -> bool:
         """判断内容是否为二进制"""
         return self.value[2]
     
-    def html_tag(self):
+    def html_tag(self) -> str:
         """获取内容对应的 HTML 标签名"""
         return self.value[3]
 
@@ -82,7 +127,7 @@ class Line(object):
     ):
         """书籍的每行内容
         
-        每行内容包括内容, 内容类型和属性,
+        每行内容包括内容编号, 内容, 内容类型和属性,
         所有数据最终都以服务于呈现 HTML 标签为目的.
         注意: 若内容为 str 类型, 则必须是 UTF-8 编码
         
@@ -115,25 +160,38 @@ class Line(object):
         self.__content_type = content_type
         self.__attrs = attrs
     
+    def __repr__(self):
+        return f"<Line index={self.__index} " \
+            f"content={self.__content[:10]}...>"
+    
+    def __str__(self):
+        if self.__content_type.is_bytes():
+            alt = self.__attrs.get("alt", "")
+            return alt if alt else ""
+        else:
+            return self.__content
+    
     def __hash__(self):
+        hash_str = f"{self.__index}{self.__content}" \
+            f"{self.__content_type}{self.__attrs}"
         sha256 = hashlib.sha256()
-        sha256.update(str(self.to_dict()).encode())
+        sha256.update(hash_str.encode())
         return int(sha256.hexdigest(), 16)
     
-    def __eq__(self, other):
+    def __eq__(self, other: "Line"):
         if not isinstance(other, Line):
             return False
         return hash(self) == hash(other)
     
     @staticmethod
-    def default():
+    def default() -> "Line":
         """创建默认的 Line 对象
         
         :return: Line 对象
         """
         return Line(0, "默认的 Line 对象.", ContentType.Text)
     
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "index": self.__index,
             "content": self.encode(),
@@ -142,7 +200,7 @@ class Line(object):
         }
     
     @staticmethod
-    def from_dict(data: dict):
+    def from_dict(data: dict) -> "Line":
         """从字典数据中创建 Line 对象
         
         :param data: 字典数据
@@ -158,13 +216,14 @@ class Line(object):
         attrs = data.get("attrs", {})
         # 确认内容和内容类型的数据类型是否正确
         # # 确认索引的数据类型为 int
-        assert isinstance(index, int)
+        if not isinstance(index, int):
+            return Line.default()
         # # 确认内容的数据类型为 str, 并且内容长度大于 0
         if (not isinstance(content, str)) or len(content) == 0:
             return Line.default()
         # # 确认内容类型的数据类型为 int, 并且内容类型在 1-6 之间
         if (not isinstance(content_type, int)) or \
-            content_type not in range(1, 7):
+            (content_type not in range(1, 7)):
             return Line.default()
         else:
             content_type = ContentType.to_obj(content_type)
@@ -173,7 +232,7 @@ class Line(object):
             return Line.default()
         else:
             for k, v in attrs.items():
-                if not isinstance(k, str) or not isinstance(v, str):
+                if (not isinstance(k, str)) or (not isinstance(v, str)):
                     return Line.default()
         # 创建 Line 对象
         return Line(
@@ -181,7 +240,7 @@ class Line(object):
             content_type, **attrs
         )
     
-    def encode(self):
+    def encode(self) -> str:
         """将内容编码为 base64 编码
         
         :return: base64 编码的内容
@@ -197,7 +256,7 @@ class Line(object):
         return value.decode()
     
     @staticmethod
-    def decode(value: str, is_bytes: bool = False):
+    def decode(value: str, is_bytes: bool = False) -> str | bytes:
         """将 base64 编码的内容解码
         
         :param value: base64 编码的内容
@@ -218,17 +277,17 @@ class Line(object):
         return value if is_bytes else value.decode()
     
     @property
-    def index(self):
+    def index(self) -> int:
         return self.__index
     
     @property
-    def content(self):
+    def content(self) -> str | bytes:
         return self.__content
     
     @property
-    def content_type(self):
+    def content_type(self) -> ContentType:
         return self.__content_type
     
     @property
-    def attrs(self):
+    def attrs(self) -> dict:
         return self.__attrs

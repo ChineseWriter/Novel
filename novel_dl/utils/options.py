@@ -10,6 +10,11 @@ import os
 import threading
 
 
+# Windows 路径中所有非法字符及其替代方案
+_ILLEGAL_CHARS = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
+_ILLEGAL_CHARS_REP = ['＜', '＞', '：', '＂', '／', '＼', '｜', '？', '＊']
+
+
 def singleton(cls):
     """单例模式装饰器
     
@@ -54,3 +59,19 @@ def mkdir(path: str) -> None:
         os.makedirs(path)
     except FileExistsError:
         pass
+
+
+def sanitize_filename(text: str) -> str:
+	"""替换非法字符
+	
+	:param text: 将要检查的字符串
+	:type text: str
+	
+	Example:
+		>>> sanitize_filename("测试字符串")
+	"""
+	# 检查每一个非法字符的存在情况, 如果存在则替换掉
+	for char, char_rep in zip(_ILLEGAL_CHARS, _ILLEGAL_CHARS_REP):
+		text = text.replace(char, char_rep)
+	# 返回替换以后的字符串
+	return text

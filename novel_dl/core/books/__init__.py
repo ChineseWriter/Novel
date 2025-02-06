@@ -6,3 +6,4 @@
 
 
 from .line import ContentType, Line
+from .chapter import CacheMethod, Chapter

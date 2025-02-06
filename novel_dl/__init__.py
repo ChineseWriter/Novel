@@ -7,7 +7,8 @@
 
 # 预导入自定义函数(类)
 from .core import ContentType, Line
-from .settings import Settings
+from .core import CacheMethod, Chapter
+from .core import Settings
 
 
 # 更新说明
