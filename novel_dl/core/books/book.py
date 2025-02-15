@@ -57,6 +57,7 @@ Book 类:
 
 
 # 导入标准库
+import time
 import copy
 import hashlib
 from enum import Enum
@@ -386,6 +387,11 @@ class Book(object):
     @property
     def desc(self) -> str:
         return self.__desc
+    
+    @property
+    def update_time(self) -> float:
+        time_list = [i.update_time for i in self.__chapter_list]
+        return max(time_list) if time_list else time.time()
     
     @property
     def sources(self) -> Generator[str, None, None]:
