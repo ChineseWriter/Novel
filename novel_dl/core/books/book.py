@@ -166,7 +166,9 @@ class Book(object):
         tags: Iterable[Tag] = (), **other_info: Dict[str, str]
     ):
         """书籍类
-        注意: 书籍类是线程安全的
+        注意: 书籍类是线程安全的.  
+        注意: 书籍类中的其它信息不能以"id"作为键名, 因为"id"是保留关键字.
+        该关键字将作为该书籍在数据库中的唯一索引值.  
         
         :param name: 书籍的名称
         :type name: str
