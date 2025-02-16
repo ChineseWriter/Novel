@@ -7,6 +7,7 @@
 
 # 导入标准库
 import os
+import hashlib
 import threading
 
 
@@ -75,3 +76,33 @@ def sanitize_filename(text: str) -> str:
 		text = text.replace(char, char_rep)
 	# 返回替换以后的字符串
 	return text
+
+
+def hash(value: bytes | str, format: str = "BYTES") -> bytes | str:
+    """计算 SHA256 哈希值
+    可选的格式有 "BYTES" 和 "HEX"
+    
+    :param value: 要计算哈希值的字符串或字节
+    :type value: bytes | str
+    :param format: 返回的哈希值的格式, 默认为 "BYTES"
+    :type format: str
+    :return: SHA256 哈希值
+    
+    Example:
+        >>> hash("测试字符串")
+    """
+    # 创建 SHA256 对象
+    sha256 = hashlib.sha256()
+    # 如果 value 是 str 类型, 则将其编码为字节
+    if isinstance(value, str):
+        value = value.encode("utf-8")
+    # 更新哈希值
+    sha256.update(value)
+    # 根据 format 的值返回不同的格式
+    match format:
+        case "BYTES":
+            return sha256.digest()
+        case "HEX":
+            return sha256.hexdigest().encode("utf-8")
+        case _:
+            return sha256.digest()
