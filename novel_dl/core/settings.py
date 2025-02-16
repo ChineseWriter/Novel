@@ -20,17 +20,18 @@ class Settings(object):
         
         该类用于存储该模块的设置信息. 所有的设置项以及说明如下:
         1. DEBUG: 是否开启调试模式, 默认为 False.
-        2. DATA_DIR: 数据目录, 默认为 "data".
-        3. MULTI_THREAD: 是否开启多线程, 默认为 True.
-        4. FORCE_RELOAD: 是否强制重新下载, 默认为 False.
-        5. LOG_DIR: 日志目录, 默认为 "data/logs".
-        6. LOG_MAX_FILE_NUMBER: 日志文件最大数量, 默认为 30.
-        7. LOG_FORMAT: 日志格式, 默认为 "\[%(asctime)s\]\(%(levelname\)s)%(filename)s-%(lineno)s, in %(funcName)s:\\n\\t%(message)s".
-        8. URLS_DIR: URL 目录, 默认为 "data/urls".
-        9. BOOKS_DIR: 书籍目录, 默认为 "data/books".
-        10. BOOKS_CACHE_DIR: 书籍缓存目录, 默认为 "data/books/cache".
-        11. BOOKS_DB_PATH: 书籍数据库路径, 默认为 "data/books/bookshelf.db".
-        12. BOOKS_STORAGE_DIR: 书籍存储目录, 默认为 "data/books/storage".
+        2. TIME_FORMAT: 时间格式, 默认为 "%Y-%m-%d %H:%M:%S".
+        3. DATA_DIR: 数据目录, 默认为 "data".
+        4. MULTI_THREAD: 是否开启多线程, 默认为 True.
+        5. FORCE_RELOAD: 是否强制重新下载, 默认为 False.
+        6. LOG_DIR: 日志目录, 默认为 "data/logs".
+        7. LOG_MAX_FILE_NUMBER: 日志文件最大数量, 默认为 30.
+        8. LOG_FORMAT: 日志格式, 默认为 "\[%(asctime)s\]\(%(levelname\)s)%(filename)s-%(lineno)s, in %(funcName)s:\\n\\t%(message)s".
+        9. URLS_DIR: URL 目录, 默认为 "data/urls".
+        10. BOOKS_DIR: 书籍目录, 默认为 "data/books".
+        11. BOOKS_CACHE_DIR: 书籍缓存目录, 默认为 "data/books/cache".
+        12. BOOKS_DB_PATH: 书籍数据库路径, 默认为 "data/books/bookshelf.db".
+        13. BOOKS_STORAGE_DIR: 书籍存储目录, 默认为 "data/books/storage".
         
         TODO 添加新的设置项时应当:
         1. 在初始化函数中添加默认值.
@@ -38,13 +39,18 @@ class Settings(object):
         3. 在类初始化方法的说明中添加新的设置项说明
         """
         self.__debug: Literal[True, False] = False
-        self.__data_dir: str = os.path.abspath("data")
+        
+        self.__time_format: str = "%Y-%m-%d %H:%M:%S"
+        
         self.__multi_thread: Literal[True, False] = True
         self.__force_reload: Literal[True, False] = False
+        
         self.__log_dir: str = os.path.join(self.__data_dir, "logs")
         self.__log_max_file_number: int = 30
         self.__log_format: str = "[%(asctime)s](%(levelname)s)" \
             "%(filename)s-%(lineno)s, in %(funcName)s:\n\t%(message)s"
+        
+        self.__data_dir: str = os.path.abspath("data")
         self.__urls_dir: str = os.path.join(self.__data_dir, "urls")
         self.__books_dir: str = os.path.join(self.__data_dir, "books")
         self.__books_cache_dir: str = os.path.join(
@@ -68,6 +74,18 @@ class Settings(object):
         # 确保 value 是 bool 类型
         assert isinstance(value, bool)
         self.__debug = value
+    
+    @property
+    def TIME_FORMAT(self) -> str:
+        """时间格式"""
+        return self.__time_format
+    
+    @TIME_FORMAT.setter
+    def TIME_FORMAT(self, value: str):
+        """设置时间格式"""
+        # 确保 value 是 str 类型
+        assert isinstance(value, str)
+        self.__time_format = value
     
     @property
     def DATA_DIR(self) -> str:
