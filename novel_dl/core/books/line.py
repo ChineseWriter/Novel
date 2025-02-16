@@ -48,6 +48,7 @@ Line 类:
         decode(
             value: str, is_bytes: bool = False
         ) -> str | bytes: 将 base64 编码的内容解码. 
+        to_html() -> Tuple[str, None | epub.EpubItem | epub.EpubImage]: 将内容转换为 HTML 标签.
 """
 
 
