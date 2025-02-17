@@ -294,4 +294,37 @@ f"""
         return 0
     
     def __save_txt(self):
-        pass
+        book = f"《{self.__book.name}》\n作者: {self.__book.author}\n" \
+            f"更新时间: {time.strftime(
+                Settings.TIME_FORMAT, 
+                self.__book.update_time
+            )}\n" \
+            f"标签: {" ".join([i for i in self.__book.tags])}" \
+            f"简介: {self.__book.desc}\n" \
+            f"来源: \n{
+                "".join([f'{i}\n' for i in self.__book.sources])
+            }\n\n" \
+        
+        for chapter in self.__book.chapters:
+            book += f"第{chapter.index}章 {chapter.name}\n" \
+                f"更新时间: {
+                    time.strftime(
+                        Settings.TIME_FORMAT,
+                        chapter.update_time
+                    )
+                }\n"
+            book += "".join(
+                [f"\t{i}\n" for i in chapter.content]
+            )
+            book += "\n"
+        
+        file_path = os.path.join(
+            Settings.BOOKS_STORAGE_DIR,
+            f"{self.__book.author}-{self.__book.title}.txt"
+        )
+        with open(file_path, "w", encoding="utf-8") as txt_file:
+            txt_file.write(book)
+        
+        return os.stat(file_path).st_size
+        
+        
