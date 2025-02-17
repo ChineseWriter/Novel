@@ -141,6 +141,7 @@ class Line(object):
         每行内容包括内容编号, 内容, 内容类型和属性,
         所有数据最终都以服务于呈现 HTML 标签为目的.
         注意: 若内容为 str 类型, 则必须是 UTF-8 编码
+        注意: 若内容为 bytes 类型, 则必须在 attrs 中包含 alt 属性
         
         :param index: 索引
         :type index: int
@@ -152,8 +153,8 @@ class Line(object):
         
         Example:
             >>> Line(
-               >>>		0, "Hello, World!", ContentType.Text, 
-               >>>		style="color: red;"
+            >>>		0, "Hello, World!", ContentType.Text, 
+            >>>		style="color: red;"
             >>> )
         """
         # 确认传入的参数的类型是否正确
