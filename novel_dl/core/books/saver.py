@@ -3,24 +3,49 @@
 # @FileName: saver.py
 # @Time: 15/02/2025 11:41
 # @Author: Amundsen Severus Rubeus Bjaaland
+"""保存书籍模块
+该模块提供了将书籍对象保存为不同格式文件的功能，包括 EPUB、PDF 和 TXT 格式。
+模块包含以下类和常量：
+- SaveMethod: 保存书籍的方式枚举类
+- Saver: 保存书籍的类
+常量:
+- INTRODUCE_CSS: 简介页面的 CSS 样式
+- CHAPTER_CSS: 章节页面的 CSS 样式
+类:
+- SaveMethod: 保存书籍的方式枚举类
+    - EPUB: 保存为 EPUB 格式
+    - PDF: 保存为 PDF 格式
+    - TXT: 保存为 TXT 格式
+    - to_obj(value: int | str) -> "SaveMethod": 将常量的ID或名称转换为常量对象
+    - __int__() -> int: 返回常量的 ID
+    - __str__() -> str: 返回常量的名称
+- Saver: 保存书籍的类
+    - __init__(self, book: Book, save_method: SaveMethod): 初始化 Saver 对象
+    - save(self) -> int: 保存书籍，返回保存文件的大小，单位是字节
+    - __save_epub(self): 保存书籍为 EPUB 格式
+    - __save_pdf(self): 保存书籍为 PDF 格式
+    - __save_txt(self): 保存书籍为 TXT 格式
+"""
 
 
-import io
+# 导入标准库
 import os
 import time
 from enum import Enum
 
+# 导入第三方库
 import yaml
-from PIL import Image
 from ebooklib import epub
 
+# 导入自定义库
+from .book import Book
+from .line import ContentType
 from novel_dl.core.settings import Settings
 from novel_dl.utils.options import hash as _hash
 from novel_dl.utils.options import mkdir, convert_image
-from .line import ContentType
-from .book import Book
 
 
+# 简介页面的 CSS 样式
 INTRODUCE_CSS = """body {
     line-height: 1.6;
     margin: 20px;
@@ -65,6 +90,7 @@ p {
     list-style-type: disc;
     padding-left: 20px;
 }"""
+# 章节页面的 CSS 样式
 CHAPTER_CSS = """body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
@@ -96,6 +122,10 @@ p {
 
 
 class SaveMethod(Enum):
+    """保存书籍的方式枚举类
+    
+    常量中, 第一个参数是ID, 第二个参数是名称
+    """
     EPUB = (1, "EPUB")
     PDF = (2, "PDF")
     TXT = (3, "TXT")
@@ -142,15 +172,35 @@ class SaveMethod(Enum):
 
 class Saver(object):
     def __init__(self, book: Book, save_method: SaveMethod):
+        """保存书籍的类
+        
+        :param book: 书籍对象
+        :type book: Book
+        :param save_method: 保存书籍的方式
+        :type save_method: SaveMethod
+        
+        Example:
+            >>> s = Saver(book, SaveMethod.EPUB)
+            >>> s.save()
+        """
+        # 确认传入的参数的类型是否正确
         assert isinstance(book, Book)
         assert isinstance(save_method, SaveMethod)
+        # 创建运行时必要的目录
         mkdir(Settings().DATA_DIR)
         mkdir(Settings().BOOKS_DIR)
         mkdir(Settings().BOOKS_STORAGE_DIR)
+        # 初始化数据
         self.__book = book
         self.__save_method = save_method
     
     def save(self) -> int:
+        """保存书籍
+        
+        :return: 保存文件的大小, 单位是字节
+        :rtype: int
+        """
+        # 根据保存方式保存书籍
         match self.__save_method:
             case SaveMethod.EPUB:
                 return self.__save_epub()
@@ -160,14 +210,18 @@ class Saver(object):
                 return self.__save_txt()
     
     def __save_epub(self):
+        # 创建 EpubBook 对象
         book = epub.EpubBook()
         
+        # 设置书籍的基本信息
         book_id = self.__book.other_info.get("id")
         if book_id:
             book.set_identifier(book_id)
         book.set_title(self.__book.name)
         book.add_author(self.__book.author)
         book.set_language("zh-CN")
+        
+        # 添加元数据, 包括作者, 书籍简介, 贡献者, 更新时间, 标签和来源
         book.add_metadata("DC", "description", self.__book.desc)
         book.add_metadata(
             "DC", "contributor", "Amundsen Severus Rubeus Bjaaland"
@@ -184,6 +238,7 @@ class Saver(object):
         for i in self.__book.sources:
             book.add_metadata("DC", "source", i)
         
+        # 如果有的话, 添加封面图片, 默认为第一张图片
         cover_images = list(self.__book.cover_images)
         if cover_images:
             book.set_cover(
@@ -191,6 +246,7 @@ class Saver(object):
                 convert_image(cover_images[0])
             )
         
+        # 添加其它信息, 以 YAML 格式保存
         if self.__book.other_info:
             yaml_item = epub.EpubItem(
                 uid="other_info",
@@ -200,6 +256,7 @@ class Saver(object):
             )
             book.add_item(yaml_item)
 
+        # 添加章节和简介页面的 CSS 样式
         intro_css = epub.EpubItem(
             uid="introduce_css",
             file_name="styles/introduce.css",
@@ -215,6 +272,7 @@ class Saver(object):
         )
         book.add_item(chapter_css)
         
+        # 添加简介页面
         intro_e = epub.EpubHtml(
             uid="introduce_html",
             title=f"《{self.__book.name}》基本信息",
@@ -261,10 +319,13 @@ f"""
 </div>"""
         book.add_item(intro_e)
         
+        # 初始化书籍的目录
         book.spine = [intro_e, "nav", intro_e]
         toc = []
         
+        # 遍历所有章节, 添加到书籍中
         for chapter in self.__book.chapters:
+            # 创建章节页面, 并添加章节的 CSS
             chapter_item = epub.EpubHtml(
                 uid=f"chapter_{chapter.str_index}",
                 title=f"第{chapter.index}章 {chapter.name}",
@@ -277,6 +338,7 @@ f"""
                 href="../styles/chapter.css"
             )
             
+            # 遍历章节的内容, 创建内容部分的 HTML, 如果存在附件, 则添加到书籍中
             content_str = ""
             for i in chapter.content:
                 match i.content_type:
@@ -330,6 +392,7 @@ f"""
                         book.add_item(js_item)
                         content_str += \
                             f'<script src="../{js_path}"></script>'
+            # 添加章节的内容到章节页面
             chapter_item.content = \
 f"""
 <div class="container">
@@ -362,19 +425,24 @@ f"""
     </div>
 </div>"""
 
+            # 添加章节页面到书籍中, 并添加到目录中
             book.add_item(chapter_item)
             toc.append(chapter_item)
             book.spine.append(chapter_item)
         
+        # 添加目录到书籍中
         book.toc = toc
         book.add_item(epub.EpubNcx())
         book.add_item(epub.EpubNav())
         
+        # 保存书籍
         file_path = os.path.join(
             Settings().BOOKS_STORAGE_DIR,
             f"{self.__book.author}-{self.__book.name}.epub"
         )
         epub.write_epub(file_path, book, {})
+        
+        # 返回保存文件的大小
         return os.stat(file_path).st_size
     
     def __save_pdf(self):
@@ -382,6 +450,7 @@ f"""
         return 0
     
     def __save_txt(self):
+        # 初始化书籍的开头
         book = f"《{self.__book.name}》\n作者: {self.__book.author}\n" \
             f"更新时间: {time.strftime(
                 Settings().TIME_FORMAT, 
@@ -393,7 +462,9 @@ f"""
                 "".join([f'{i}\n' for i in self.__book.sources])
             }\n\n" \
         
+        # 遍历所有章节, 添加到书籍中
         for chapter in self.__book.chapters:
+            # 添加章节的信息到书籍中
             book += f"第{chapter.index}章 {chapter.name}\n" \
                 f"更新时间: {
                     time.strftime(
@@ -401,11 +472,13 @@ f"""
                         time.localtime(chapter.update_time)
                     )
                 }\n"
+            # 添加章节的内容到书籍中
             book += "".join(
                 [f"\t{i}\n" for i in chapter.content]
             )
             book += "\n"
         
+        # 保存书籍
         file_path = os.path.join(
             Settings().BOOKS_STORAGE_DIR,
             f"{self.__book.author}-{self.__book.name}.txt"
@@ -413,6 +486,5 @@ f"""
         with open(file_path, "w", encoding="utf-8") as txt_file:
             txt_file.write(book)
         
+        # 返回保存文件的大小
         return os.stat(file_path).st_size
-        
-        
