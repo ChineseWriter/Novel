@@ -8,3 +8,4 @@
 from .line import ContentType, Line
 from .chapter import CacheMethod, Chapter
 from .book import State, Tag, Book
+from .saver import SaveMethod, Saver

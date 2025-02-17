@@ -45,12 +45,13 @@ class Settings(object):
         self.__multi_thread: Literal[True, False] = True
         self.__force_reload: Literal[True, False] = False
         
+        self.__data_dir: str = os.path.abspath("data")
+        
         self.__log_dir: str = os.path.join(self.__data_dir, "logs")
         self.__log_max_file_number: int = 30
         self.__log_format: str = "[%(asctime)s](%(levelname)s)" \
             "%(filename)s-%(lineno)s, in %(funcName)s:\n\t%(message)s"
         
-        self.__data_dir: str = os.path.abspath("data")
         self.__urls_dir: str = os.path.join(self.__data_dir, "urls")
         self.__books_dir: str = os.path.join(self.__data_dir, "books")
         self.__books_cache_dir: str = os.path.join(

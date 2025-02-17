@@ -292,60 +292,6 @@ class Line(object):
         # 如果 is_bytes 为 True, 则返回二进制内容
         return value if is_bytes else value.decode()
     
-    def to_html(self) \
-        -> Tuple[str, None | epub.EpubItem | epub.EpubImage]:
-        match self.__content_type:
-            case ContentType.Text:
-                return f"<p>{self.__content}</p>", None
-            case ContentType.Image:
-                image = io.BytesIO(self.__content)
-                new_image = io.BytesIO()
-                img_obj = Image.open(image)
-                img_obj.convert("RGB").save(new_image, format="jpeg")
-                new_image.seek(0)
-                new_image = new_image.read()
-                image_hash = _hash(new_image, "HEX")
-                alt = self.__attrs.get("alt", "")
-                html_str = \
-                    f'<img src="images/{image_hash}.jpg" alt={alt}>'
-                html_item = epub.EpubImage(
-                    uid=image_hash,
-                    file_name=f"images/{image_hash}.png",
-                    media_type="image/jpeg",
-                    content=new_image
-                )
-                return html_str, html_item
-            case ContentType.Audio:
-                # TODO 添加音频处理
-                return "", None
-            case ContentType.Video:
-                # TODO 添加视频处理
-                return "", None
-            case ContentType.CSS:
-                css_hash = _hash(self.__content, "HEX")
-                html_str = \
-                    '<link rel="stylesheet" type="text/css" ' \
-                    f'href="stylesheets/{css_hash}.css">'
-                html_item = epub.EpubItem(
-                    uid=css_hash,
-                    file_name=f"stylesheets/{css_hash}.css",
-                    media_type="text/css",
-                    content=self.__content
-                )
-                return html_str, html_item
-            case ContentType.JS:
-                js_hash = _hash(self.__content, "HEX")
-                html_str = \
-                    '<script type="text/javascript" ' \
-                    f'src="scripts/{js_hash}.js"></script>'
-                html_item = epub.EpubItem(
-                    uid=js_hash,
-                    file_name=f"scripts/{js_hash}.js",
-                    media_type="application/javascript",
-                    content=self.__content
-                )
-                return html_str, html_item
-    
     @property
     def index(self) -> int:
         return self.__index

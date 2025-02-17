@@ -6,9 +6,13 @@
 
 
 # 导入标准库
+import io
 import os
 import hashlib
 import threading
+
+# 导入 PIL 库
+from PIL import Image
 
 
 # Windows 路径中所有非法字符及其替代方案
@@ -106,3 +110,25 @@ def hash(value: bytes | str, format: str = "BYTES") -> bytes | str:
             return sha256.hexdigest().encode("utf-8")
         case _:
             return sha256.digest()
+
+
+def convert_image(image: bytes, format: str = "JPEG") -> bytes:
+    """将图像转换为指定格式
+    
+    :param image: 要转换的图像
+    :type image: bytes
+    :param format: 要转换的格式, 默认为 "JPEG"
+    :type format: str
+    :return: 转换后的图像
+    
+    Example:
+        >>> convert_image(image)
+    """
+    # 创建 BytesIO 对象
+    image = Image.open(io.BytesIO(image))
+    # 创建 BytesIO 对象
+    output = io.BytesIO()
+    # 保存图像
+    image.save(output, format=format)
+    # 返回转换后的图像
+    return output.getvalue()

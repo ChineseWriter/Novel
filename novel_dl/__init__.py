@@ -10,6 +10,7 @@ from .core import Settings
 from .core import ContentType, Line
 from .core import CacheMethod, Chapter
 from .core import State, Tag, Book
+from .core import SaveMethod, Saver
 
 
 # 更新说明

@@ -13,6 +13,7 @@ from novel_dl import ContentType, Line
 from novel_dl.core.books.chapter import CacheList
 from novel_dl import CacheMethod, Chapter
 from novel_dl import State, Tag, Book
+from novel_dl import SaveMethod, Saver
 
 
 class TestLine:
@@ -285,3 +286,73 @@ class TestBook:
         )
         
         assert book_1 == book_2
+
+
+class TestSaver:
+    def generate_book(self):
+        with open("tests/book.jpg", "rb") as cover_file:
+            cover = cover_file.read()
+        
+        book = Book(
+            "测试书籍名_1", "测试作者名_1", State.END, "测试简介_1",
+            ["https://example.com/1", "https://example.com/2",],
+            [cover, cover], [Tag.FANTASY, Tag.ROMANCE,], test_attr="id"
+        )
+        
+        chapter_1 = Chapter(
+            1, "测试章节名_1", ("https://example.com/1",),
+            time.time(), "测试书籍名_1", (),
+            CacheMethod.Memory
+        )
+        chapter_1.append(Line(0, "Hello, World!", ContentType.Text))
+        chapter_1.append(Line(1, "你好, 世界!", ContentType.Text))
+        
+        chapter_2 = Chapter(
+            2, "测试章节名_2", ("https://example.com/2",),
+            time.time(), "测试书籍名_1", (),
+            CacheMethod.Memory
+        )
+        chapter_2.append(Line(0, "Bonjour le monde!", ContentType.Text))
+        chapter_2.append(Line(1, "Hola, Mundo!", ContentType.Text))
+        
+        book.append(chapter_1)
+        book.append(chapter_2)
+        
+        return book
+    
+    def test_save_method(self):
+        assert SaveMethod.to_obj(1) == SaveMethod.EPUB
+        assert SaveMethod.to_obj("EPUB") == SaveMethod.EPUB
+        assert int(SaveMethod.EPUB) == 1
+        assert str(SaveMethod.EPUB) == "EPUB"
+        
+        assert SaveMethod.to_obj(2) == SaveMethod.PDF
+        assert SaveMethod.to_obj("PDF") == SaveMethod.PDF
+        assert int(SaveMethod.PDF) == 2
+        assert str(SaveMethod.PDF) == "PDF"
+        
+        assert SaveMethod.to_obj(3) == SaveMethod.TXT
+        assert SaveMethod.to_obj("TXT") == SaveMethod.TXT
+        assert int(SaveMethod.TXT) == 3
+        assert str(SaveMethod.TXT) == "TXT"
+        
+        assert SaveMethod.to_obj(4) == SaveMethod.EPUB
+        assert SaveMethod.to_obj("未知") == SaveMethod.EPUB
+    
+    def test_epub(self):
+        book = self.generate_book()
+        
+        saver = Saver(book, SaveMethod.EPUB)
+        saver.save()
+    
+    def test_pdf(self):
+        book = self.generate_book()
+        
+        saver = Saver(book, SaveMethod.PDF)
+        saver.save()
+    
+    def test_txt(self):
+        book = self.generate_book()
+        
+        saver = Saver(book, SaveMethod.TXT)
+        saver.save()
