@@ -48,24 +48,14 @@ Line 类:
         decode(
             value: str, is_bytes: bool = False
         ) -> str | bytes: 将 base64 编码的内容解码. 
-        to_html() -> Tuple[str, None | epub.EpubItem | epub.EpubImage]: 将内容转换为 HTML 标签.
 """
 
 
 # 导入标准库
-import io
 import copy
 import base64
 import hashlib
 from enum import Enum
-from typing import Tuple
-
-# 导入第三方库
-from ebooklib import epub
-from PIL import Image
-
-# 导入自定义库
-from novel_dl.utils.options import hash as _hash
 
 
 class ContentType(Enum):
@@ -139,8 +129,8 @@ class Line(object):
         """书籍的每行内容
         
         每行内容包括内容编号, 内容, 内容类型和属性,
-        所有数据最终都以服务于呈现 HTML 标签为目的.
-        注意: 若内容为 str 类型, 则必须是 UTF-8 编码
+        所有数据最终都以服务于呈现 HTML 标签为目的.  
+        注意: 若内容为 str 类型, 则必须是 UTF-8 编码  
         注意: 若内容为 bytes 类型, 则必须在 attrs 中包含 alt 属性
         
         :param index: 索引

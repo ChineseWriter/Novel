@@ -64,8 +64,8 @@ from enum import Enum
 from threading import Lock
 from typing import Iterable, Generator, Dict, List
 # 导入自定义库
-from novel_dl.utils.options import sanitize_filename
 from .chapter import Chapter
+from novel_dl.utils.fs import sanitize_filename
 
 
 class State(Enum):
@@ -104,7 +104,7 @@ class State(Enum):
                 if i.value[1] == value:
                     # 返回常量对象
                     return i
-        # 如果 value 的值不在常量中, 则返回 Memory 类型
+        # 如果 value 的值不在常量中, 则返回 END 类型
         return cls.END
     
     def __int__(self):
@@ -224,6 +224,12 @@ class Book(object):
         self.__chapter_list: List[Chapter] = []
         self.__lock = Lock()
     
+    def __repr__(self):
+        return f"<Book name={self.__name} " \
+            f"author={self.__author} " \
+            f"state={int(self.__state)} " \
+            f"len={len(self.__chapter_list)}>"
+    
     def __len__(self) -> int:
         with self.__lock:
             return len(self.__chapter_list)
@@ -244,6 +250,9 @@ class Book(object):
     
     def __bool__(self) -> bool:
         return hash(self) != hash(Book.default())
+    
+    def __iter__(self) -> Iterable[Chapter]:
+        return self.__chapter_list
     
     def __getitem__(self, index: int) -> Chapter:
         # 确保 index 是 int 类型

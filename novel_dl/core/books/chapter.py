@@ -80,9 +80,9 @@ from enum import Enum
 from typing import Iterable, Generator, List, Dict
 
 # 导入自定义库
-from novel_dl.utils.options import mkdir, sanitize_filename
-from novel_dl.core.settings import Settings
 from .line import Line
+from novel_dl.core.settings import Settings
+from novel_dl.utils.fs import mkdir, sanitize_filename
 
 
 class CacheMethod(Enum):
@@ -474,7 +474,7 @@ class Chapter(object):
     
     def __repr__(self):
         return f"<Chapter book_name={self.__book_name} " \
-            f"index={self.__index} name={self.__name}" \
+            f"index={self.__index} name={self.__name} " \
             f"len={len(self)} cache_method={str(self.__cache_method)}>"
     
     def __hash__(self):
@@ -554,6 +554,11 @@ class Chapter(object):
     @property
     def book_name(self) -> str:
         return self.__book_name
+    
+    @book_name.setter
+    def book_name(self, value: str):
+        assert isinstance(value, str)
+        self.__book_name = sanitize_filename(value)
     
     @property
     def cache_method(self) -> CacheMethod:
