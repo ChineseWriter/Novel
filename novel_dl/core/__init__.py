@@ -5,6 +5,7 @@
 # @Author: Amundsen Severus Rubeus Bjaaland
 
 
+from .logger import Logger
 from .settings import Settings
 from .books import ContentType, Line
 from .books import CacheMethod, Chapter

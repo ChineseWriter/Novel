@@ -15,44 +15,11 @@ import fire
 
 # 导入自定义库
 import novel_dl
-
-
-# def changable_args():
-#     """指示可以更改的设置文件
-#     列出 Settings 的所有类变量并排除其中不能更改的类变量
-#     """
-#     # 列出 Settings 的所有类变量
-#     args = dir(novel_dl.Settings)
-#     # 排除其中不能更改的类变量
-#     args.remove("LOG_DIR")
-#     args.remove("URLS_DIR")
-#     args.remove("BOOKS_DIR")
-#     args.remove("BOOKS_CACHE_DIR")
-#     args.remove("BOOKS_DB_PATH")
-#     args.remove("BOOKS_STORAGE_DIR")
-#     # 返回最终结果
-#     return args
+from novel_dl.core.books import SaveMethod, Saver
+from novel_dl.services.download import WebManager
 
 
 class Pipeline(object):
-    # def __init__(self, **other_settings):
-    #     # 获取可以更改的设置的设置名称
-    #     settings_args = changable_args()
-    #     # 将传入的设置更新
-    #     for key, item in other_settings.items():
-    #         # 确保设置有正确的类型
-    #         if (item == "true") or (item == "True"):
-    #             item = True
-    #         if (item == "false") or (item == "False"):
-    #             item = False
-    #         # 更新设置
-    #         if key.upper() in settings_args:
-    #             # TODO 添加基本的检查, 防止非法设置传入导致程序崩溃
-    #             setattr(novel_dl.Settings, key.upper(), item)
-    #         else:
-    #             print(f"存在未知的全局设置: {key}")
-    #             sys.exit(-1)
-
     def test_cmd(self):
         print("命令行可正常使用。")
 
@@ -61,17 +28,16 @@ class Pipeline(object):
         pytest.main(["-s", "tests"])
     
     def download_novel(self, url: str, save_method: int = 1):
-        # 将数字表示的保存方式改为保存方式常量
-        method = novel_dl.Book.SaveMethod.transform(save_method)
-        # 获取网站引擎管理类
-        manager = novel_dl.WebManager()
-        # 下载指定的书籍
-        book = manager.download(url)
-        # 保存书籍后退出程序
-        if book != novel_dl.Book.empty_book():
-            book.save(method)
-        # 退出程序
-        return None
+        method = SaveMethod.to_obj(save_method)
+        manager = WebManager()
+        
+        def test(chapter):
+            print(chapter.name)
+            return chapter
+        
+        book = manager.download(url, chapter_middle_ware=test)
+        if book is not None:
+            Saver(book, method).save()
     
     def download_novels(self, save_method: int = 1):
         BOOK_URLS_FILE = "book_urls.txt"
