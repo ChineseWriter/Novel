@@ -40,9 +40,10 @@ from ebooklib import epub
 # 导入自定义库
 from .book import Book
 from .line import ContentType
+from novel_dl.utils.fs import mkdir
 from novel_dl.core.settings import Settings
 from novel_dl.utils.options import hash as _hash
-from novel_dl.utils.options import mkdir, convert_image
+from novel_dl.utils.options import convert_image
 
 
 # 简介页面的 CSS 样式
