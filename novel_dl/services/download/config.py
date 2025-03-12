@@ -3,6 +3,48 @@
 # @FileName: config.py
 # @Time: 18/02/2025 18:01
 # @Author: Amundsen Severus Rubeus Bjaaland
+"""
+config.py
+这个模块定义了用于下载小说的配置类和操作类型常量。
+类:
+    Operations(Enum): 定义了可选的操作类型常量。
+    BookWeb(ABCMeta): 通用引擎模版，定义了一个基本的网站引擎应当包含的信息和方法。
+Operations 类:
+    常量:
+        INFO: 获取书籍信息。
+        URLS: 获取书籍的所有章节 URL。
+        CHAPTER: 获取章节的信息及内容。
+    方法:
+        to_obj(value: int) -> "Operations": 将常量的ID转换为常量对象。
+        __int__(): 返回常量的ID。
+        __str__(): 返回常量的描述。
+BookWeb 类:
+    属性:
+        name (str): 网站的名字。
+        domains (List[str]): 网站可能的网址列表。
+        workable (bool): 引擎是否可用。
+        book_url_pattern (str): 网站书籍 URL 的固定模式。
+        chapter_url_pattern (str): 网站章节 URL 的固定模式。
+        encoding (str): 网站所使用的编码。
+        prestore_book_urls (bool): 是否可以提前寻找网站内所有书籍。
+        multi_thread (bool): 该网站是否支持多线程下载。
+    方法:
+        __str__() -> str: 返回网站的名字。
+        __repr__(): 返回网站配置的字符串表示。
+        __hash__(): 返回网站配置的哈希值。
+        __eq__(other: "BookWeb"): 判断两个网站配置是否相等。
+        get_book_info(response: Network) -> Book: 获取书籍的基本信息。
+        get_chapter_url(response: Network) -> List[str]:
+            获取书籍的章节来源。
+        get_chapter(
+            response: Network, index: int, book_name: str
+        ) -> Chapter: 获取章节的内容。
+        is_protected(
+            response: Network | None, network_error: Exception | None,
+            analyze_error: Exception | None
+        ) -> bool: 判断是否为网站的访问保护。
+        prevent_protected(*param): 反爬操作。
+"""
 
 
 # 导入标准库
