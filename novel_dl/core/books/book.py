@@ -63,8 +63,10 @@ import hashlib
 from enum import Enum
 from threading import Lock
 from typing import Iterable, Generator, Dict, List
+
 # 导入自定义库
 from .chapter import Chapter
+from novel_dl.utils.options import hash as _hash
 from novel_dl.utils.fs import sanitize_filename
 
 
@@ -425,3 +427,9 @@ class Book(object):
     def chapters(self) -> Generator[Chapter, None, None]:
         for i in self.__chapter_list:
             yield i
+    
+    @property
+    def hash(self) -> int:
+        return _hash(
+            f"{self.__name}{self.__author}{self.__state}"
+        )

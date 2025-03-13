@@ -57,6 +57,9 @@ import base64
 import hashlib
 from enum import Enum
 
+# 导入自定义库
+from novel_dl.utils.options import hash as _hash
+
 
 class ContentType(Enum):
     """书籍中每行的内容类型枚举类
@@ -297,3 +300,10 @@ class Line(object):
     @property
     def attrs(self) -> dict:
         return self.__attrs
+    
+    @property
+    def hash(self) -> bytes:
+        return _hash(
+            f"{self.__index}{self.__content}" \
+            f"{self.__content_type}{self.__attrs}"
+        )

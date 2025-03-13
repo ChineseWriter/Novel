@@ -82,6 +82,7 @@ from typing import Iterable, Generator, List, Dict
 # 导入自定义库
 from .line import Line
 from novel_dl.core.settings import Settings
+from novel_dl.utils.options import hash as _hash
 from novel_dl.utils.fs import mkdir, sanitize_filename
 
 
@@ -572,3 +573,10 @@ class Chapter(object):
     def content(self) -> Generator[Line, None, None]:
         for i in self.__content:
             yield i
+    
+    @property
+    def hash(self) -> int:
+        return _hash(
+            f"{self.str_index}{self.__name}" \
+            f"{self.__book_name}"
+        )
