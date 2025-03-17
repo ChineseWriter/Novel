@@ -220,7 +220,8 @@ class WebManager(object):
     def __download_chapter(
         self, engine: BookWeb, url: str, book: Book,
         chapter_list: List[str],
-        chapter_middle_ware: Callable[[Chapter], Chapter] = lambda x: x
+        chapter_middle_ware: Callable[[Chapter, Book], Chapter] = \
+        lambda x: x
     ) -> Book:
         """下载章节
         
@@ -264,7 +265,7 @@ class WebManager(object):
                     # 从结果中提取章节
                     chapter = chapter[1]
                     # 使用章节中间件处理章节
-                    chapter = chapter_middle_ware(chapter)
+                    chapter = chapter_middle_ware(chapter, book)
                     # 添加章节到书籍对象
                     book.append(chapter)
         # 如果不启用多线程则使用单线程下载
@@ -281,7 +282,7 @@ class WebManager(object):
                 # 从结果中提取章节
                 chapter = chapter[1]
                 # 使用章节中间件处理章节
-                chapter = chapter_middle_ware(chapter)
+                chapter = chapter_middle_ware(chapter, book)
                 # 添加章节到书籍对象
                 book.append(chapter)
         # 将书籍对象中的章节排序
@@ -293,7 +294,8 @@ class WebManager(object):
         self, url: str, book_middle_ware: Callable[[Book], Book] = \
         lambda x: x, chapters_middle_ware: \
         Callable[[List[Chapter]], List[Chapter]] = lambda x: x,
-        chapter_middle_ware: Callable[[Chapter], Chapter] = lambda x: x
+        chapter_middle_ware: Callable[[Chapter, Book], Chapter] = \
+        lambda x: x
     ) -> Book | None:
         """下载书籍
         如果下载失败则返回 None
@@ -306,7 +308,7 @@ class WebManager(object):
         :type chapters_middle_ware:
         Callable[[List[Chapter]], List[Chapter]]
         :param chapter_middle_ware: 章节中间件, 用于处理章节信息
-        :type chapter_middle_ware: Callable[[Chapter], Chapter]
+        :type chapter_middle_ware: Callable[[Chapter, Book], Chapter]
         :return: 书籍对象或者 None
         """
         # 确认传入的参数的类型是否正确
