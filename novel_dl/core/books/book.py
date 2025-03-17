@@ -429,7 +429,7 @@ class Book(object):
             yield i
     
     @property
-    def hash(self) -> int:
+    def hash(self) -> bytes:
         return _hash(
             f"{self.__name}{self.__author}{self.__state}"
         )

@@ -575,7 +575,7 @@ class Chapter(object):
             yield i
     
     @property
-    def hash(self) -> int:
+    def hash(self) -> bytes:
         return _hash(
             f"{self.str_index}{self.__name}" \
             f"{self.__book_name}"
