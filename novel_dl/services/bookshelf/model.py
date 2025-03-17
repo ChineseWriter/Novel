@@ -3,28 +3,89 @@
 # @FileName: model.py
 # @Time: 12/03/2025 15:37
 # @Author: Amundsen Severus Rubeus Bjaaland
+"""
+模块名称: novel_dl.services.bookshelf.model
+模块功能: 定义与书架相关的数据库模型，包括书籍、章节、附件和封面等。
+类:
+    - Attechments:
+        描述章节中的附件信息，例如图片、音频、视频等。
+        属性:
+            - things_hash: 附件的唯一哈希值 (主键)。
+            - chapter_hash: 所属章节的哈希值 (外键)。
+            - index: 附件在章节中的索引。
+            - content: 附件的内容。
+            - content_type: 附件的类型 (如图片、音频、视频等)。
+            - attrs: 附件的其他属性 (JSON 格式)。
+        方法:
+            - from_chapter: 从章节对象生成附件列表。
+            - to_line: 将附件转换为章节内容行对象。
+    - Chapters:
+        描述书籍中的章节信息。
+        属性:
+            - things_hash: 章节的唯一哈希值 (主键)。
+            - book_hash: 所属书籍的哈希值 (外键)。
+            - index: 章节的索引。
+            - name: 章节名称。
+            - sources: 章节来源信息 (JSON 格式)。
+            - update_time: 章节的更新时间 (时间戳)。
+            - book_name: 所属书籍的名称。
+            - content: 章节的内容 (HTML 格式)。
+            - cache_method: 缓存方式。
+            - attrs: 章节的其他属性 (JSON 格式)。
+        方法:
+            - encode_content: 将章节内容编码为 HTML 格式。
+            - from_chapter: 从章节对象生成数据库章节对象。
+            - to_chapter: 将数据库章节对象转换为章节对象。
+    - BookCovers:
+        描述书籍的封面信息。
+        属性:
+            - things_hash: 封面的唯一哈希值 (主键)。
+            - book_hash: 所属书籍的哈希值 (外键)。
+            - cover_image: 封面图片的内容。
+        方法:
+            - from_book: 从书籍对象生成封面列表。
+            - to_cover: 将封面对象转换为图片内容。
+    - Books:
+        描述书籍的基本信息。
+        属性:
+            - things_hash: 书籍的唯一哈希值 (主键)。
+            - name: 书籍名称。
+            - author: 作者名称。
+            - state: 书籍状态 (如连载中、已完结等)。
+            - desc: 书籍简介。
+            - sources: 书籍来源信息 (JSON 格式)。
+            - tags: 书籍的标签列表。
+            - attrs: 书籍的其他属性 (JSON 格式)。
+        方法:
+            - from_book: 从书籍对象生成数据库书籍对象。
+            - to_book: 将数据库书籍对象转换为书籍对象。
+注意:
+    - 本模块依赖 SQLAlchemy 进行 ORM 映射。
+    - 使用了自定义的枚举类 (ContentType, CacheMethod, State, Tag) 和工具函数 (如 _hash)。
+    - 数据库字段类型包括 BLOB、JSON、String 等，适用于存储多种类型的数据。
+"""
 
 
-import base64
+
+# 导入标准库
 import json
+import base64
 from typing import List
 
-from sqlalchemy import Column
-from sqlalchemy import String, BLOB, SmallInteger, JSON
-from sqlalchemy import Integer
-from sqlalchemy import ForeignKey
-from sqlalchemy import CheckConstraint
+# 导入第三方库
+from bs4 import BeautifulSoup as bs
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, ForeignKey, CheckConstraint
+from sqlalchemy import Integer, String, BLOB, SmallInteger, JSON
 
-from bs4 import BeautifulSoup as bs
-
+# 导入自定义库
 from novel_dl.utils.options import hash as _hash
+from novel_dl.core.books import Line, Chapter, Book
+from novel_dl.core.books import ContentType, CacheMethod, State, Tag
 
-from novel_dl.core.books import ContentType, CacheMethod, State
-from novel_dl.core.books import Line, Chapter, Book, Tag
 
-
+# 创建数据库映射基类
 Base = declarative_base()
 
 
