@@ -291,8 +291,9 @@ class WebManager(object):
         return book
     
     def download(
-        self, url: str, book_middle_ware: Callable[[Book], Book] = \
-        lambda x: x, chapters_middle_ware: \
+        self, url: str, only_info: bool = False,
+        book_middle_ware: Callable[[Book], Book] = lambda x: x,
+        chapters_middle_ware: \
         Callable[[List[Chapter]], List[Chapter]] = lambda x: x,
         chapter_middle_ware: Callable[[Chapter, Book], Chapter] = \
         lambda x: x
@@ -302,6 +303,8 @@ class WebManager(object):
         
         :param url: URL
         :type url: str
+        :param only_info: 仅下载书籍信息, 默认为 False
+        :type only_info: bool
         :param book_middle_ware: 书籍中间件, 用于处理书籍信息
         :type book_middle_ware: Callable[[Book], Book]
         :param chapters_middle_ware: 章节列表中间件, 用于处理章节列表
@@ -328,9 +331,11 @@ class WebManager(object):
         # 从结果中提取书籍信息和章节列表
         book = result[0]
         chapter_list = result[1]
-        # 下载章节
-        book = self.__download_chapter(
-            engine, url, book, chapter_list, chapter_middle_ware
-        )
+        # 如果不是仅下载书籍信息则继续下载章节
+        if not only_info:
+            # 下载章节
+            book = self.__download_chapter(
+                engine, url, book, chapter_list, chapter_middle_ware
+            )
         # 返回书籍对象
         return book

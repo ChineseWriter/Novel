@@ -467,51 +467,29 @@ class Engine4(BookWeb):
     def get_chapter(
         self, response: Network, index: int, book_name: str
     ) -> Chapter:
-        flag = response.bs.find("div", attrs={"class": "text-head"})
-        if flag is None:
-            response.save_debug_file()
-            article = response.bs.find("article")
-            name = article.find("h3").text.split(" ")[-1]
-            text = article.find_all("p")
-            update_time = time.time()
-        else:
-            name = flag.find("h3").text.split(" ")[-1]
-            text = response.bs.find(
-                "div", attrs={"class": "read-content j_readContent"}
-            ).find_all("p")
-            update_time = response.bs.find(
-                "div", attrs={"class": "info fl"}
-            ).find_all("span")[-1].text
-            update_time = time.mktime(
-                time.strptime(update_time, "%Y-%m-%d %H:%M")
-            )
-        text = [
-            i.text.strip("\r\n ").replace("\u3000", "") for i in text
-        ]
-        if text[0] == '章节内容转码失败！':
-            raise ProtectedError("存在反爬机制!")
-        text = [
-            Line(index + 1, item, ContentType.Text)
-            for index, item in enumerate(text)
-        ]
-        return Chapter(
-            index, name, [response.response.url,], update_time,
-            book_name, text
+        name = response.bs.find("h2").text.split(" ")[-1]
+        content = response.bs.find("article")
+        contents = str(content).split("<br/>")
+        contents[0] = contents[0].replace("\n", "") \
+            .replace("<!--go-->", "") \
+            .replace('<article id="article">', "")
+        contents[-1] = contents[-1].replace("<!--over-->", "") \
+            .replace("</article>", "")
+        contents = [i.replace("\xa0", "") for i in contents]
+        contents = list(
+            filter(lambda x: True if x else False, contents)
         )
+        return Chapter(
+            index, name, [response.response.url,], time.time(),
+            book_name, contents
+        )
+        
 
     def is_protected(
         self, response: Network | None,
         network_error: Exception | None,
         analyze_error: Exception | None
     ) -> bool:
-        if isinstance(analyze_error, ProtectedError):
-            return True
-        if isinstance(network_error, requests.exceptions.ConnectionError):
-            return True
-        if isinstance(network_error, requests.exceptions.ReadTimeout):
-            return True
-        if isinstance(network_error, requests.exceptions.SSLError):
-            return True
         return super().is_protected(response, network_error, analyze_error)
 
     def prevent_protected(self, *param):
