@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 # @FileName: network.py
-# @Time: 26/10/2024 16:23
+# @Time: 18/02/2025 18:06
 # @Author: Amundsen Severus Rubeus Bjaaland
 """网络相关工具, 简化了一些网络操作, 主要为 Network 类."""
 
@@ -24,7 +24,9 @@ class Network(object):
     # URL 支持的协议
     SUPPORTED_PROTOCOLS = ["http", "https"]
     
-    def __init__(self, response: requests.Response, encoding: str = "UTF-8"):
+    def __init__(
+        self, response: requests.Response, encoding: str = "UTF-8"
+    ):
         """网络对象,
         提供网络相关的基本操作
         

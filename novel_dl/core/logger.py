@@ -1,6 +1,7 @@
+#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-# @FileName: logs.py
-# @Time: 02/11/2024 10:21
+# @FileName: logger.py
+# @Time: 30/01/2025 19:48
 # @Author: Amundsen Severus Rubeus Bjaaland
 """为整个项目提供日志支持
 
@@ -51,8 +52,8 @@ from typing import Dict, List
 from tqdm import tqdm
 
 # 导入自定义库
-from .tools import mkdir
 from .settings import Settings
+from novel_dl.utils.fs import mkdir
 
 
 def singleton(cls):

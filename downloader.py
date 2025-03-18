@@ -15,44 +15,12 @@ import fire
 
 # 导入自定义库
 import novel_dl
-
-
-def changable_args():
-    """指示可以更改的设置文件
-    列出 Settings 的所有类变量并排除其中不能更改的类变量
-    """
-    # 列出 Settings 的所有类变量
-    args = dir(novel_dl.Settings)
-    # 排除其中不能更改的类变量
-    args.remove("LOG_DIR")
-    args.remove("URLS_DIR")
-    args.remove("BOOKS_DIR")
-    args.remove("BOOKS_CACHE_DIR")
-    args.remove("BOOKS_DB_PATH")
-    args.remove("BOOKS_STORAGE_DIR")
-    # 返回最终结果
-    return args
+from novel_dl.core.books import SaveMethod, Saver
+from novel_dl.services.download import WebManager
+from novel_dl.services.bookshelf import Bookshelf
 
 
 class Pipeline(object):
-    def __init__(self, **other_settings):
-        # 获取可以更改的设置的设置名称
-        settings_args = changable_args()
-        # 将传入的设置更新
-        for key, item in other_settings.items():
-            # 确保设置有正确的类型
-            if (item == "true") or (item == "True"):
-                item = True
-            if (item == "false") or (item == "False"):
-                item = False
-            # 更新设置
-            if key.upper() in settings_args:
-                # TODO 添加基本的检查, 防止非法设置传入导致程序崩溃
-                setattr(novel_dl.Settings, key.upper(), item)
-            else:
-                print(f"存在未知的全局设置: {key}")
-                sys.exit(-1)
-
     def test_cmd(self):
         print("命令行可正常使用。")
 
@@ -61,37 +29,50 @@ class Pipeline(object):
         pytest.main(["-s", "tests"])
     
     def download_novel(self, url: str, save_method: int = 1):
-        # 将数字表示的保存方式改为保存方式常量
-        method = novel_dl.Book.SaveMethod.transform(save_method)
-        # 获取网站引擎管理类
-        manager = novel_dl.WebManager()
-        # 下载指定的书籍
-        book = manager.download(url)
-        # 保存书籍后退出程序
-        if book != novel_dl.Book.empty_book():
-            book.save(method)
-        # 退出程序
-        return None
+        method = SaveMethod.to_obj(save_method)
+        
+        manager = WebManager()
+        book_shelf = Bookshelf()
+        
+        def book_middle_ware(book):
+            book_shelf.save_book_info(book)
+            print(f"书籍({book.name})信息已保存.")
+            return book_shelf.complete_book(book)
+        
+        def chapter_middle_ware(chapter, book):
+            book_shelf.save_chapter_info(chapter, book.hash)
+            print(f"章节({chapter.name})信息已保存.")
+            return chapter
+        
+        book = manager.download(
+            url, book_middle_ware=book_middle_ware,
+            chapter_middle_ware=chapter_middle_ware
+        )
+        
+        if book is not None:
+            Saver(book, method).save()
     
     def download_novels(self, save_method: int = 1):
         BOOK_URLS_FILE = "book_urls.txt"
         # 将数字表示的保存方式改为保存方式常量
-        method = novel_dl.Book.SaveMethod.transform(save_method)
+        method = SaveMethod.to_obj(save_method)
         # 获取网站引擎管理类
-        manager = novel_dl.WebManager()
+        manager = WebManager()
         # 确保书籍网址文件存在, 不存在则自动创建
         if not os.path.exists(BOOK_URLS_FILE):
-            print(f"未找到书籍 URL 配置文件({BOOK_URLS_FILE}), 将自动创建. ")
+            print(f"未找到书籍 URL 配置文件({BOOK_URLS_FILE}), 将自动创建.")
             open(BOOK_URLS_FILE, "w", encoding="UTF-8").close()
             return None
         # 读取书籍网址文件, 并按行将其转换为列表
-        with open(BOOK_URLS_FILE, "r", encoding="UTF-8") as book_urls_file:
+        with open(
+            BOOK_URLS_FILE, "r", encoding="UTF-8"
+        ) as book_urls_file:
             urls = [i.strip("\n") for i in book_urls_file.readlines()]
         for one_url in urls:
             # 下载指定的书籍并保存
             book = manager.download(one_url)
-            if book != novel_dl.Book.empty_book():
-                book.save(method)
+            if book is not None:
+                Saver(book, method).save()
         # 退出程序
         return None
     
